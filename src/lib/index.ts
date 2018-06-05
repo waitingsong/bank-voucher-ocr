@@ -38,6 +38,22 @@ export class Bvo {
 
   constructor(public options: OcrOpts) {
     this.options.debug = !! this.options.debug
+
+    const { baseTmpDir, splitTmpDir, resizeImgDir } = options
+
+    const baseDir = baseTmpDir ? baseTmpDir : initialBaseTmpDir
+    const splitDir = splitTmpDir ? splitTmpDir : initialSplitTmpDir
+    const resizeDir = resizeImgDir ? resizeImgDir : initialResizeImgDir
+
+    ofrom(createDir(baseDir)).pipe(
+      concatMap(() => createDir(splitDir)),
+      concatMap(() => createDir(resizeDir)),
+    )
+      .subscribe(
+        () => {},
+        console.error,
+      )
+
   }
 
   run(imgPath: string): Observable<OcrRetInfo> {
@@ -122,16 +138,11 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
     }),
   )
 
-  const createDirs$ = ofrom(createDir(baseDir)).pipe(
-    concatMap(() => createDir(splitDir)),
-    concatMap(() => createDir(resizeDir)),
-  )
   const imgExists$ = ofrom(isFileExists(imgPath)).pipe(
     filter(val => val),
   )
 
-  return createDirs$.pipe(
-    mergeMap(() => imgExists$),
+  return imgExists$.pipe(
     mergeMap(() => ret$),
   )
 }
