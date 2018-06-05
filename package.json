@@ -1,24 +1,31 @@
 {
-  "name": "npm-base",
+  "name": "bank-voucher-ocr",
   "author": "waiting",
   "version": "0.0.1",
-  "description": "npm boilerplate",
-  "keywords": [],
+  "description": "Bank Voucher ocr by tesseract and retrieve fields",
+  "keywords": [
+    "voucher",
+    "rxjs",
+    "ocr",
+    "tesseract",
+    "银行凭证",
+    "银行回单"
+  ],
   "engines": {
     "node": ">=8.10.0"
   },
   "browser": "",
-  "es2015": "./dist/index.esm.js",
+  "es2015": "./dist/bvocr.esm.js",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bugs": {
-    "url": "https://github.com/waitingsong/npm-base/issues"
+    "url": "https://github.com/waitingsong/bank-voucher-ocr/issues"
   },
-  "homepage": "https://github.com/waitingsong/npm-base#readme",
+  "homepage": "https://github.com/waitingsong/bank-voucher-ocr#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/waitingsong/npm-base.git"
+    "url": "git+https://github.com/waitingsong/bank-voucher-ocr.git"
   },
   "license": "MIT",
   "nyc": {
@@ -40,13 +47,18 @@
     ],
     "all": true
   },
-  "dependencies": {},
+  "dependencies": {
+    "easyimage": "^3.1.0",
+    "moment": "^2.22.2",
+    "rxrunscript": "^1.0.1"
+  },
   "devDependencies": {
     "@types/mocha": "^5.0.0",
     "@types/node": "^10.0.0",
     "@types/power-assert": "^1.5.0",
     "@types/rewire": "^2.5.28",
     "@types/rimraf": "^2.0.2",
+    "@types/yargs": "^11.0.0",
     "coveralls": "^3.0.0",
     "eslint": "^4.19.1",
     "intelli-espower-loader": "^1.0.1",
@@ -61,11 +73,16 @@
     "rollup-plugin-commonjs": "^9.1.0",
     "rollup-plugin-node-resolve": "^3.3.0",
     "rollup-plugin-uglify": "^3.0.0",
+    "rxjs": "^6.2.0",
     "source-map-support": "^0.5.4",
-    "ts-node": "^5.0.1",
+    "ts-node": "^6.0.5",
     "tslint": "^5.10.0",
     "tslint-eslint-rules": "^5.3.1",
-    "typescript": "^2.8.1"
+    "typescript": "^2.8.1",
+    "yargs": "^11.0.0"
+  },
+  "peerDependencies": {
+    "rxjs": "^6.2.0"
   },
   "scripts": {
     "bp:add": "git remote add bp https://github.com/waitingsong/npm-base",

@@ -10,6 +10,7 @@ const production = ! process.env.ROLLUP_WATCH
 
 const name = parseName(pkg.name)
 const targetDir = dirname(pkg.main)
+const deps = pkg.dependencies
 
 const banner = `
 /**
@@ -46,15 +47,21 @@ const globals = {
   'rxjs/websocket': 'rxjs.websocket',
 }
 const external = [
-  'rxjs', 'rxjs/operators', 'rxjs/websocket',
+  'rxjs', 'rxjs/operators', 'rxjs/websocket', 'rxjs/ajax',
+]
+const nodeModule = [
   'fs', 'path', 'util', 'os',
 ]
+
+for (const depName of Object.keys(deps)) {
+  external.push(depName)
+}
 
 
 const config = [
   // CommonJS (for Node) and ES module (for bundlers) build.
   {
-    external,
+    external: external.concat(nodeModule),
     input: pkg.module,
     output: [
       {
@@ -72,35 +79,30 @@ const config = [
     ],
   },
 
-  // esm minify
-  {
-    external: production ? external : [],
-    input: pkg.module,
-    plugins: production
-      ? [ uglify(uglifyOpts) ]
-      : [
-        resolve({
-          browser: true,
-          jsnext: true,
-          main: true,
-        }),
-        commonjs(),
-      ],
-    output: {
-      banner,
-      file: parseName(pkg.es2015) + '.min.js',
-      format: 'es',
-      sourcemap: production ? true : false,
-    },
-  },
-
 ]
+
+if (production) {
+  config.push(
+    // esm minify
+    {
+      external: external.concat(nodeModule),
+      input: pkg.module,
+      plugins: [ uglify(uglifyOpts) ],
+      output: {
+        banner,
+        file: parseName(pkg.es2015) + '.min.js',
+        format: 'es',
+        sourcemap: true,
+      },
+    },
+  )
+}
 
 if (pkg.browser) {
   config.push(
     // umd bundle min
     {
-      external: [],
+      external: nodeModule,
       input: pkg.module,
       plugins: [
         resolve({
@@ -126,8 +128,16 @@ if (pkg.browser) {
 
 // remove pkg.name extension if exists
 function parseName(name) {
-  if (name && name.slice(-3).toLowerCase() === '.js') {
-    return name.slice(0, -3)
+  if (name) {
+    const arr = name.split('.')
+    const len = arr.length
+
+    if (len > 2) {
+      return arr.slice(0, -1).join('.')
+    }
+    else if (len === 2 || len === 1) {
+      return arr[0]
+    }
   }
   return name
 }
