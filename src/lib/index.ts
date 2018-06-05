@@ -34,8 +34,19 @@ import { getRegexpOptsByName, prepareContent, retrieveKeyValuesFromOcrResult } f
 
 const moment = moment_
 
+export class Bvo {
 
-export function recognize(options: OcrOpts): Observable<OcrRetInfo> {
+  constructor(public options: OcrOpts) {
+    this.options.debug = !! this.options.debug
+  }
+
+  run(imgPath: string): Observable<OcrRetInfo> {
+    return recognize(imgPath, this.options)
+  }
+}
+
+
+export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetInfo> {
   const {
     bankZone,
     baseTmpDir,
@@ -44,7 +55,6 @@ export function recognize(options: OcrOpts): Observable<OcrRetInfo> {
     jpegQuality,
     scale,
     splitTmpDir,
-    imgPath,
     resizeImgDir,
     voucherConfigMap,
   } = options

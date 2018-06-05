@@ -4,7 +4,6 @@ export type EncodedText = string  // base64格式签名数据
 export type Filename = string
 
 export interface OcrOpts {
-  imgPath: string // image file path to ocr and pick values
   bankZone: OcrZone // for recognize bank from page
   baseTmpDir?: string
   debug?: boolean
