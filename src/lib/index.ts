@@ -16,16 +16,8 @@ import {
 
 import { createDir, isFileExists, join, rimraf, unlinkAsync } from '../shared/index'
 
-import {
-  initialBaseTmpDir,
-  initialResizeImgDir,
-  initialSplitTmpDir,
- } from './config'
-
-import {
-  resizeAndSaveImg,
-  splitPagetoItems,
-} from './img-process'
+import { initialBaseTmpDir, initialResizeImgDir, initialSplitTmpDir } from './config'
+import { resizeAndSaveImg, splitPagetoItems } from './img-process'
 import {
   BankName, BankRegexpOptsMap,
   FieldName,
@@ -37,12 +29,7 @@ import {
   ZoneImgMap, ZoneImgRow, ZoneRegexpOpts,
 } from './model'
 import { cropImgAllZones, cropImgZone, getOcrZoneOptsByBankName, runOcr } from './ocr-process'
-import {
-  // batchRetrieveValuesFromZones,
-  getRegexpOptsByName,
-  prepareContent,
-  retrieveKeyValuesFromOcrResult,
-} from './txt-process'
+import { getRegexpOptsByName, prepareContent, retrieveKeyValuesFromOcrResult } from './txt-process'
 
 
 const moment = moment_
