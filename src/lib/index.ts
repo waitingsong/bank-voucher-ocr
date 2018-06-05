@@ -275,7 +275,6 @@ function batchOcrAndRetrieve(
   const { bankName } = bankConfig
 
   return ofrom(zoneImgMap.entries()).pipe(
-    // @FIXME with mergeMap
     concatMap((zoneImgRow: ZoneImgRow) => {
       return ocrAndPickFromZoneImg(zoneImgRow, bankConfig, concurrent)
     }),
