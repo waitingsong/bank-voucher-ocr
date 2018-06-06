@@ -1,15 +1,15 @@
 {
   "name": "bank-voucher-ocr",
   "author": "waiting",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Bank Voucher ocr by tesseract and retrieve fields",
   "keywords": [
     "voucher",
     "rxjs",
     "ocr",
     "tesseract",
-    "ÒøÐÐÆ¾Ö¤",
-    "ÒøÐÐ»Øµ¥"
+    "ï¿½ï¿½ï¿½ï¿½Æ¾Ö¤",
+    "ï¿½ï¿½ï¿½Ð»Øµï¿½"
   ],
   "engines": {
     "node": ">=8.10.0"
