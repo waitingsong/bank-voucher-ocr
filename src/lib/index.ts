@@ -1,14 +1,16 @@
 import * as moment_ from 'moment'
-import { from as ofrom, of, Observable } from 'rxjs'
+import { defer, from as ofrom, of, Observable } from 'rxjs'
 import {
   catchError,
   concatMap,
   defaultIfEmpty,
+  delay,
   filter,
   map,
   mapTo,
   mergeMap,
   reduce,
+  retry,
   skipWhile,
   take,
   tap,
@@ -246,42 +248,89 @@ function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRetInfo> {
     voucherConfigMap,
   } = options
 
-  const zoneTmpDir = join(baseDir, '/zone/', Math.random().toString())
+  const zoneTmpDir = join(baseDir, '/zone/', moment().format('YYYYMMDD') + '-' + Math.random().toString())
   const bankConfig = getOcrZoneOptsByBankName(bankName, voucherConfigMap)
 
-  // console.info('recognize single image:', zoneTmpDir, imgFile.path)
   if (! bankConfig) {
     throw new Error(`get bankConfig empty with bankName: "${bankName}"`)
   }
 
   const stream$: Observable<OcrRetInfo> = ofrom(createDir(zoneTmpDir)).pipe(
     mergeMap(() => cropImgAllZones(imgFile.path, zoneTmpDir, bankConfig.ocrZones)), // 切分图片区域分别做ocr识别
-    concatMap(fileMap => batchOcrAndRetrieve(fileMap, bankConfig, ocrFields, defaultValue, concurrent)),
-    tap(() => debug || rimraf(zoneTmpDir).catch(console.info)), // 删除zone切分图片
+    concatMap(fileMap => {
+      const opts: BatchOcrAndRetrieve = {
+        bankConfig, ocrFields, defaultValue, debug,
+        concurrent: concurrent > 0 ? concurrent : 2,
+        zoneImgMap: fileMap,
+      }
+      return batchOcrAndRetrieve(opts)
+    }),
+    // do NOT delete zoneTmpDir here
   )
 
   return stream$
 }
 
+export interface BatchOcrAndRetrieve {
+  zoneImgMap: ZoneImgMap
+  bankConfig: VoucherConfig
+  ocrFields: OcrFields
+  defaultValue: string
+  concurrent: number
+  debug: boolean
+}
 
-function batchOcrAndRetrieve(
-  zoneImgMap: ZoneImgMap,
-  bankConfig: VoucherConfig,
-  ocrFields: OcrFields,
-  defaultValue: string = '',
-  concurrent: number = 2,
-): Observable<OcrRetInfo> {
+function batchOcrAndRetrieve(options: BatchOcrAndRetrieve): Observable<OcrRetInfo> {
+  const {
+    zoneImgMap,
+    bankConfig,
+    ocrFields,
+    defaultValue,
+    concurrent,
+    debug,
+  } = options
 
   const { bankName } = bankConfig
 
-  return ofrom(zoneImgMap.entries()).pipe(
+  const del$ = ofrom(zoneImgMap.entries()).pipe(
+    delay(5000),
+    mergeMap(([, imgInfo]) => {
+      return defer(async () => {
+        const img = imgInfo.path
+        const txt = img + '.txt'
+
+        if (await isFileExists(img)) {
+          await rimraf(img)
+        }
+        if (await isFileExists(txt)) {
+          await rimraf(txt)
+        }
+        return null
+      }).pipe(
+        delay(20000),
+        retry(2),
+        catchError(err => {
+          console.info('Delete zone file retry failed:', err)
+          return of(null)
+        }),
+      )
+    }),
+    catchError(() => {
+      return of(null)
+    }),
+  )
+
+  const process$ = ofrom(zoneImgMap.entries()).pipe(
     concatMap((zoneImgRow: ZoneImgRow) => {
       return ocrAndPickFromZoneImg(zoneImgRow, bankConfig, concurrent)
     }),
     reduce<OcrZoneRet, OcrRetInfo>((acc, curr) => acc.set(curr.fieldName, curr.value), new Map()),
     map(retMap => retMap.set(FieldName.bank, bankName)),
     map(retMap => setDefaultValue(retMap, ocrFields, defaultValue)),
+    tap(() => debug || del$.subscribe()), // 删除zone切分图片
   )
+
+  return process$
 }
 
 

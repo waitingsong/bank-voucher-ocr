@@ -43,7 +43,7 @@ export function cropImgAllZones(
 export function cropImgZone(srcPath: string, targetDir: string, ocrZoneOpts: OcrZone): Observable<ImgFileInfo> {
   const { zoneName, width, height, offsetX, offsetY } = ocrZoneOpts
 
-  const dst = join(targetDir, `${zoneName}.png`)
+  const dst = join(targetDir, `${zoneName}-${Math.random()}.png`)
   const opts = {
     dst,
     src: srcPath,
