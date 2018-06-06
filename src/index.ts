@@ -5,4 +5,5 @@ export {
   initialBaseTmpDir,
   initialResizeImgDir,
   initialSplitTmpDir,
+  zoneTmpDirPrefix,
 } from './lib/config'
