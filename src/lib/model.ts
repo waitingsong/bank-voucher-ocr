@@ -52,7 +52,12 @@ export const enum FieldName {
 export type OcrRetInfoKey = FieldName | 'filename' | 'path'
 export type OcrRetInfo = Map<OcrRetInfoKey, string>
 export type VoucherConfigMap = Map<BankName, VoucherConfig>
+// for transport
+export interface OcrRetObject {
+  [key: string]: OcrRetInfo,  // Filename: OcrRetInfo
+}
 
+// export type FieldNameTypeKey = keyof typeof FieldName
 
 export interface OcrZoneRet {
   fieldName: FieldName
