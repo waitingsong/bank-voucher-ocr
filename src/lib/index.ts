@@ -18,7 +18,7 @@ import {
 
 import { createDir, isFileExists, join, rimraf, unlinkAsync } from '../shared/index'
 
-import { initialBaseTmpDir, initialResizeImgDir, initialSplitTmpDir } from './config'
+import { initialBaseTmpDir, initialResizeImgDir, initialSplitTmpDir, zoneTmpDirPrefix } from './config'
 import { resizeAndSaveImg, splitPagetoItems } from './img-process'
 import {
   BankName, BankRegexpOptsMap,
@@ -160,7 +160,7 @@ function recognizePageBank(options: RecognizePageBankOpts): Observable<PageBankR
     lang,
   } = options
 
-  const zoneTmpDir = join(baseDir, 'zone/', Math.random().toString())
+  const zoneTmpDir = join(baseDir, zoneTmpDirPrefix, Math.random().toString())
   debug && console.info('recognize pageBank:', zoneTmpDir, path)
 
   return ofrom(createDir(zoneTmpDir)).pipe(
@@ -248,7 +248,7 @@ function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRetInfo> {
     voucherConfigMap,
   } = options
 
-  const zoneTmpDir = join(baseDir, '/zone/', moment().format('YYYYMMDD') + '-' + Math.random().toString())
+  const zoneTmpDir = join(baseDir, zoneTmpDirPrefix, moment().format('YYYYMMDD') + '-' + Math.random().toString())
   const bankConfig = getOcrZoneOptsByBankName(bankName, voucherConfigMap)
 
   if (! bankConfig) {
