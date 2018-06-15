@@ -177,7 +177,11 @@ function recognizePageBank(options: RecognizePageBankOpts): Observable<PageBankR
       // 批量提取参数值
       return ofrom(bankRegexpOptsMap.entries()).pipe(
         concatMap(([bankName, regexps]) => {
-          return retrieveKeyValuesFromOcrResult(zoneImgPath + '.txt', regexps, buf => buf.toString()).pipe(
+          return retrieveKeyValuesFromOcrResult(
+            zoneImgPath + '.txt',
+            regexps,
+            buf => buf.toString().replace(/(?<=\S)[. ]{1,2}(?=\S)/g, ''),
+          ).pipe(
             map(val => ({ bankName, value: val })),
           )
         }),
