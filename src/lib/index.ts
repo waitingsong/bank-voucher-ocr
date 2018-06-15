@@ -21,7 +21,7 @@ import { createDir, isFileExists, join, rimraf, unlinkAsync } from '../shared/in
 import { initialBaseTmpDir, initialResizeImgDir, initialSplitTmpDir, zoneTmpDirPrefix } from './config'
 import { resizeAndSaveImg, splitPagetoItems } from './img-process'
 import {
-  BankName, BankRegexpOptsMap,
+  BankName, BankRegexpOptsMap, BatchOcrAndRetrieve,
   FieldName,
   ImgFileInfo,
   OcrFields, OcrFieldLangs, OcrLangs, OcrOpts, OcrRetInfo, OcrZone, OcrZoneRet,
@@ -274,15 +274,6 @@ function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRetInfo> {
   )
 
   return stream$
-}
-
-export interface BatchOcrAndRetrieve {
-  zoneImgMap: ZoneImgMap
-  bankConfig: VoucherConfig
-  ocrFields: OcrFields
-  defaultValue: string
-  concurrent: number
-  debug: boolean
 }
 
 function batchOcrAndRetrieve(options: BatchOcrAndRetrieve): Observable<OcrRetInfo> {

@@ -181,3 +181,12 @@ export interface RecognizePageBankOpts {
   debug: boolean
   lang: string
 }
+
+export interface BatchOcrAndRetrieve {
+  zoneImgMap: ZoneImgMap
+  bankConfig: VoucherConfig
+  ocrFields: OcrFields
+  defaultValue: string
+  concurrent: number
+  debug: boolean
+}
