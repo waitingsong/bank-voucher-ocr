@@ -56,7 +56,12 @@ export function getRegexpOptsByName(
 
 
 // retrieve fieldName from ocr result file
-function retrieveValueByRegexp(txt: string, regexps: RegexpArray, debug: boolean): string | void {
+function retrieveValueByRegexp(
+  txt: string,
+  regexps: RegexpArray,
+  debug: boolean = false,
+): string | void {
+
   const ret = regexMatch(txt, regexps, debug)
   if (debug) {
     console.info(
@@ -98,7 +103,7 @@ export function prepareContent(buf: Buffer): string {
  * regex match with order of regexs item
  * allow only one matched result
  */
-function regexMatch(content: string, regexps: RegexpArray, debug: boolean): string | void {
+function regexMatch(content: string, regexps: RegexpArray, debug: boolean = false): string | void {
   if (! content) {
     return
   }
