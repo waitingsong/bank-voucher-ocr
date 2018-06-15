@@ -27,8 +27,7 @@ import {
   OcrFields, OcrFieldLangs, OcrLangs, OcrOpts, OcrRetInfo, OcrZone, OcrZoneRet,
   PageBankRet, PageToImgRet,
   RecognizeFieldsOpts, RecognizePageBankOpts, RegexpArray,
-  VoucherConfig, VoucherConfigMap,
-  ZoneImgMap, ZoneImgRow, ZoneRegexpOpts,
+  VoucherConfig, VoucherConfigMap, ZoneImgRow, ZoneRegexpOpts,
 } from './model'
 import { cropImgAllZones, cropImgZone, getOcrZoneOptsByBankName, runOcr } from './ocr-process'
 import { getRegexpOptsByName, prepareContent, retrieveKeyValuesFromOcrResult } from './txt-process'
