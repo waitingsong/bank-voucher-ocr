@@ -151,6 +151,6 @@ function calcItemsPerPage(pageHeight: number, itemHeight: number): number {
 
   return pageHeight >= itemHeight
     ? Math.floor((pageHeight + delta) / itemHeight)
-    : 0
+    : 1 // use one !
 }
 
