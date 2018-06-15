@@ -181,6 +181,7 @@ function recognizePageBank(options: RecognizePageBankOpts): Observable<PageBankR
             zoneImgPath + '.txt',
             regexps,
             buf => buf.toString().replace(/(?<=\S)[. ]{1,2}(?=\S)/g, ''),
+            debug,
           ).pipe(
             map(val => ({ bankName, value: val })),
           )
@@ -326,7 +327,7 @@ function batchOcrAndRetrieve(options: BatchOcrAndRetrieve): Observable<OcrRetInf
 
   const process$ = ofrom(zoneImgMap.entries()).pipe(
     concatMap((zoneImgRow: ZoneImgRow) => {
-      return ocrAndPickFromZoneImg(zoneImgRow, bankConfig, concurrent)
+      return ocrAndPickFromZoneImg(zoneImgRow, bankConfig, concurrent, debug)
     }),
     reduce<OcrZoneRet, OcrRetInfo>((acc, curr) => acc.set(curr.fieldName, curr.value), new Map()),
     map(retMap => retMap.set(FieldName.bank, bankName)),
@@ -527,6 +528,7 @@ function ocrAndPickFromZoneImg(
   zoneImgRow: ZoneImgRow,
   config: VoucherConfig,
   concurrent: number = 2,
+  debug: boolean = false,
 ): Observable<OcrZoneRet> {
 
   const { ocrDefaultLangs, ocrFieldLangs, regexpOpts, ocrFields } = config
@@ -538,7 +540,14 @@ function ocrAndPickFromZoneImg(
     }),
     mergeMap(data => {
       const fieldName = <FieldName> data[0]
-      return ocrAndPickFieldFromZoneImg(fieldName, zoneImgRow, regexpOpts, ocrDefaultLangs, ocrFieldLangs)
+      return ocrAndPickFieldFromZoneImg(
+        fieldName,
+        zoneImgRow,
+        regexpOpts,
+        ocrDefaultLangs,
+        ocrFieldLangs,
+        debug,
+      )
     }, concurrent),
   )
 
@@ -551,6 +560,7 @@ function ocrAndPickFieldFromZoneImg(
   regexpOpts: ZoneRegexpOpts,
   defaultLangs: OcrLangs,
   fieldLangs: Partial<OcrFieldLangs> | void,
+  debug: boolean = false,
 ): Observable<OcrZoneRet> {
 
   const [, zoneImg] = zoneImgRow
@@ -578,6 +588,7 @@ function ocrAndPickFieldFromZoneImg(
         zoneImg.path + '.txt',
         regexp,
         prepareContent,
+        debug,
       ).pipe(
         map(val => ({ fieldName, value: val })),
       )

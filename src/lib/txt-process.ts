@@ -14,7 +14,8 @@ import {
 export function retrieveKeyValuesFromOcrResult(
   path: string, // ocr result txt file path
   matchRules: RegexpArray,
-  preProcssBufferFn?: PreProcessBufferFn,
+  preProcssBufferFn: PreProcessBufferFn | null,
+  debug: boolean = false,
 ): Observable<string | void> {
 
   if (! matchRules) {
@@ -28,7 +29,7 @@ export function retrieveKeyValuesFromOcrResult(
         ? preProcssBufferFn(buf)
         : buf.toString('utf8')
 
-      return retrieveValueByRegexp(txt, <RegexpArray> regexp)
+      return retrieveValueByRegexp(txt, <RegexpArray> regexp, debug)
     }),
     // map(val => typeof val === 'string' && val.length > 0 ? val : ''),
   )
@@ -55,10 +56,17 @@ export function getRegexpOptsByName(
 
 
 // retrieve fieldName from ocr result file
-function retrieveValueByRegexp(txt: string, regexps: RegexpArray): string | void {
-  // console.log('---------------\n',
-  // txt, '===============\n', regexps, '>>>>>>>>', regexMatch(txt, regexps))
-  return regexMatch(txt, regexps)
+function retrieveValueByRegexp(txt: string, regexps: RegexpArray, debug: boolean): string | void {
+  const ret = regexMatch(txt, regexps, debug)
+  if (debug) {
+    console.info(
+      'retrieveValueByRegexp ----- text start: ---------------> \n',
+      txt, '\n<--------------- text END ----------------\n\n',
+      regexps, '>>>>>>>>matched value: ',
+      ret, '\n',
+    )
+  }
+  return ret
 }
 
 
@@ -90,15 +98,19 @@ export function prepareContent(buf: Buffer): string {
  * regex match with order of regexs item
  * allow only one matched result
  */
-function regexMatch(content: string, regexps: RegexpArray): string | void {
+function regexMatch(content: string, regexps: RegexpArray, debug: boolean): string | void {
   if (! content) {
     return
   }
   for (const regex of regexps) {
     const arr = content.match(regex)
-    // console.log('matched:', arr, regex)
 
     if (Array.isArray(arr) && arr.length) {
+      debug && console.info(
+        '----------matched regex: -------------->\n',
+        arr, '\n--- used regex ----: ', regex,
+        '\n<----------------------------\n\n',
+      )
       return arr[0]
     }
   }
