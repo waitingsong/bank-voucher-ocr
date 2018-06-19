@@ -10,7 +10,9 @@ export interface OcrOpts {
   defaultOcrLang: string  // default tesseract ocr lang, eg 'eng'
   jpegQuality: number // result image quality (0, 100]
   resizeImgDir?: string // store result images
-  scale: number // resize result image  (0, 1]
+  scale: number // save resize result image  (0, 1]
+  // default 1. if item of voucherConfigMap for 300api, but source image is 600dpi then set thie value to 600/300==2
+  globalScale: number
   splitTmpDir?: string  // store temp split images to ocr
   voucherConfigMap: VoucherConfigMap
 }

@@ -24,10 +24,10 @@ import {
   BankName, BankRegexpOptsMap, BatchOcrAndRetrieve,
   FieldName,
   ImgFileInfo,
-  OcrFields, OcrFieldLangs, OcrLangs, OcrOpts, OcrRetInfo, OcrZone, OcrZoneRet,
-  PageBankRet, PageToImgRet,
-  RecognizeFieldsOpts, RecognizePageBankOpts, RegexpArray,
-  VoucherConfig, VoucherConfigMap, ZoneImgRow, ZoneRegexpOpts,
+  OcrFields, OcrFieldLangs, OcrLangs, OcrOpts, OcrRetInfo, OcrZone,
+  OcrZoneRet, PageBankRet,
+  PageToImgRet, RecognizeFieldsOpts, RecognizePageBankOpts,
+  RegexpArray, VoucherConfig, VoucherConfigMap, ZoneImgRow, ZoneRegexpOpts,
 } from './model'
 import { cropImgAllZones, cropImgZone, getOcrZoneOptsByBankName, runOcr } from './ocr-process'
 import { getRegexpOptsByName, prepareContent, retrieveKeyValuesFromOcrResult } from './txt-process'
@@ -38,6 +38,12 @@ const moment = moment_
 export class Bvo {
 
   constructor(public options: OcrOpts) {
+    const globalScale = +this.options.globalScale
+
+    this.options.globalScale = Number.isNaN(globalScale) || globalScale <= 0
+      ? 1
+      : globalScale
+
     this.options.debug = !! this.options.debug
 
     const { baseTmpDir, splitTmpDir, resizeImgDir } = options
@@ -74,17 +80,28 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
     splitTmpDir,
     resizeImgDir,
     voucherConfigMap,
+    globalScale,
   } = options
 
   const baseDir = baseTmpDir ? baseTmpDir : initialBaseTmpDir
   const splitDir = splitTmpDir ? splitTmpDir : initialSplitTmpDir
   const resizeDir = resizeImgDir ? resizeImgDir : initialResizeImgDir
 
-  const bankRegexpOptsMap: BankRegexpOptsMap = getBankRegexpOpts(voucherConfigMap)
+  // if config set for 300api, but source image from 600dpi, then set globalSale=600/300. default is 1
+  const voucherConfigMapNew = parseVoucherConfigMapScale(voucherConfigMap, globalScale)
+  const bankZoneNew = parseOcrZoneScale(bankZone, globalScale)
+  const scaleNew = scale / globalScale
+  // console.info(
+  //   `global scale: "${globalScale}" result: scale:"${scaleNew}"`,
+  //   '\nbankZoneNew:', bankZoneNew,
+  //   '\nvoucherConfigMap:', voucherConfigMap,
+  // )
+
+  const bankRegexpOptsMap: BankRegexpOptsMap = getBankRegexpOpts(voucherConfigMapNew)
   const bankOpts = {
     baseDir,
     path: imgPath,
-    bankZone,
+    bankZone: bankZoneNew,
     bankRegexpOptsMap,
     debug: !! debug,
     lang: defaultOcrLang,
@@ -94,10 +111,10 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
     filter(({ bankName }) => !! bankName && bankName !== BankName.NA),
     concatMap(({ bankName, pagePath }) => { // 切分页面为多张凭证
       !! debug && console.info('start split page')
-      return splitPageToImgs(pagePath, bankName, splitDir, voucherConfigMap)
+      return splitPageToImgs(pagePath, bankName, splitDir, voucherConfigMapNew)
     }),
     concatMap(({ bankName, imgFile }) => { // 单张凭证处理
-      const ocrFields: OcrFields | void = getOcrFields(bankName, voucherConfigMap)
+      const ocrFields: OcrFields | void = getOcrFields(bankName, voucherConfigMapNew)
 
       if (!ocrFields) {
         throw new Error(`ocrFields not defined with bankName: "${bankName}"`)
@@ -111,7 +128,7 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
         defaultValue: '',
         imgFile,
         ocrFields,
-        voucherConfigMap,
+        voucherConfigMap: voucherConfigMapNew,
       }
 
       !! debug && console.info('recognize item')
@@ -130,7 +147,7 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
       const opts = {
         retInfo,
         resizeDir,
-        scale,
+        scale: scaleNew,
         jpegQuality,
         debug: !!debug,
       }
@@ -602,4 +619,37 @@ function ocrAndPickFieldFromZoneImg(
     map(processZoneImgRow),
   )
 
+}
+
+
+// parse width,height with globalScale
+function parseVoucherConfigMapScale(configMap: VoucherConfigMap, globalScale: number): VoucherConfigMap {
+  const ret = <VoucherConfigMap> new Map()
+
+  for (const [bankName, config] of configMap) {
+    const ocrZones = <OcrZone[]> []
+
+    for (const zone of config.ocrZones) {
+      ocrZones.push(parseOcrZoneScale(zone, globalScale))
+    }
+    config.ocrZones = ocrZones
+    config.width = config.width * globalScale
+    config.height = config.height * globalScale
+
+    ret.set(bankName, config)
+  }
+
+  return ret
+}
+
+// parse width,height with globalScale
+function parseOcrZoneScale(config: OcrZone, globalScale: number): OcrZone {
+  const ret = <OcrZone> { ...config }
+
+  ret.width = ret.width * globalScale
+  ret.height = ret.height * globalScale
+  ret.offsetX = ret.offsetX * globalScale
+  ret.offsetY = ret.offsetY * globalScale
+
+  return ret
 }
