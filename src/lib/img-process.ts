@@ -107,7 +107,7 @@ function parseSplitPage(options: SplitPageOpts): Observable<ImgFileInfo> {
   const { index, srcPath, pageHeight } = options
   const { width } = options.itemConfig
   let { height } = options.itemConfig
-  const padding = 36  // pixel. ca 3mm during 300dpi
+  const marginBottom = 36  // pixel. ca 3mm during 300dpi
   const x = 0
   const y = index * height
 
@@ -122,7 +122,7 @@ function parseSplitPage(options: SplitPageOpts): Observable<ImgFileInfo> {
     src: srcPath,
     quality: 100, // 100 for ocr
     cropWidth: width,
-    cropHeight: height + padding,
+    cropHeight: height + marginBottom,
     x,
     y,
   }
