@@ -192,3 +192,11 @@ export interface BatchOcrAndRetrieve {
   concurrent: number
   debug: boolean
 }
+
+export interface SaveImgAndPruneOpts {
+  retInfo: OcrRetInfo
+  resizeDir: string
+  scale: number // 0-1
+  jpegQuality: number // 1-100
+  debug: boolean
+}

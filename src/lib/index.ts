@@ -24,10 +24,10 @@ import {
   BankName, BankRegexpOptsMap, BatchOcrAndRetrieve,
   FieldName,
   ImgFileInfo,
-  OcrFields, OcrFieldLangs, OcrLangs, OcrOpts, OcrRetInfo, OcrZone,
-  OcrZoneRet, PageBankRet,
-  PageToImgRet, RecognizeFieldsOpts, RecognizePageBankOpts,
-  RegexpArray, VoucherConfig, VoucherConfigMap, ZoneImgRow, ZoneRegexpOpts,
+  OcrFields, OcrFieldLangs, OcrLangs, OcrOpts, OcrRetInfo, OcrZone, OcrZoneRet,
+  PageBankRet, PageToImgRet,
+  RecognizeFieldsOpts, RecognizePageBankOpts, RegexpArray,
+  SaveImgAndPruneOpts, VoucherConfig, VoucherConfigMap, ZoneImgRow, ZoneRegexpOpts,
 } from './model'
 import { cropImgAllZones, cropImgZone, getOcrZoneOptsByBankName, runOcr } from './ocr-process'
 import { getRegexpOptsByName, prepareContent, retrieveKeyValuesFromOcrResult } from './txt-process'
@@ -474,14 +474,6 @@ function getOcrFields(bankName: BankName, configMap: VoucherConfigMap): OcrField
   return config.ocrFields
 }
 
-
-export interface SaveImgAndPruneOpts {
-  retInfo: OcrRetInfo
-  resizeDir: string
-  scale: number // 0-1
-  jpegQuality: number // 1-100
-  debug: boolean
-}
 
 function saveImgAndPrune(options: SaveImgAndPruneOpts): Observable<OcrRetInfo> {
   const { retInfo, resizeDir, debug, scale, jpegQuality } = options
