@@ -111,12 +111,22 @@ function regexMatch(content: string, regexps: RegexpArray, debug: boolean = fals
     const arr = content.match(regex)
 
     if (Array.isArray(arr) && arr.length) {
-      debug && console.info(
-        '----------matched regex: -------------->\n',
-        arr, '\n--- used regex ----: ', regex,
-        '\n<----------------------------\n\n',
-      )
-      return arr[0]
+      if (regex.global && arr.length > 1) { // regexp with g and multi matched
+        debug && console.info(
+          '----------multi matched regex: -------------->\n',
+          arr, '\n--- used regex ----: ', regex,
+          '\n<-------------ignore matched result---------------\n\n',
+        )
+        return ''
+      }
+      else {
+        debug && console.info(
+          '----------matched regex: -------------->\n',
+          arr, '\n--- used regex ----: ', regex,
+          '\n<----------------------------\n\n',
+        )
+        return arr[0]
+      }
     }
   }
 }
