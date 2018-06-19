@@ -89,13 +89,14 @@ function readTxtFile(path: string): Observable<Buffer> {
 }
 
 
+// default text parse
 export function prepareContent(buf: Buffer): string {
   let content = buf && buf.byteLength ? buf.toString() : ''
 
   if (! content) {
     return ''
   }
-  content = content.replace(/[\t ]/g, '') // remove tab character and space character
+  content = content.replace(/(?<=\S) /g, '') // remove ONE space character after word
   return content
 }
 
