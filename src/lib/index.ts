@@ -23,7 +23,6 @@ import { resizeAndSaveImg, splitPagetoItems } from './img-process'
 import {
   BankName, BankRegexpOptsMap, BatchOcrAndRetrieve,
   FieldName,
-  ImgFileInfo,
   OcrFields, OcrFieldLangs, OcrLangs, OcrOpts, OcrRetInfo, OcrZone, OcrZoneRet,
   PageBankRet, PageToImgRet,
   RecognizeFieldsOpts, RecognizePageBankOpts, RegexpArray,
