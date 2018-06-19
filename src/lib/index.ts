@@ -617,7 +617,8 @@ function ocrAndPickFieldFromZoneImg(
 function parseVoucherConfigMapScale(configMap: VoucherConfigMap, globalScale: number): VoucherConfigMap {
   const ret = <VoucherConfigMap> new Map()
 
-  for (const [bankName, config] of configMap) {
+  for (const [bankName, row] of configMap) {
+    const config: VoucherConfig = { ...row }
     const ocrZones = <OcrZone[]> []
 
     for (const zone of config.ocrZones) {
@@ -626,6 +627,7 @@ function parseVoucherConfigMapScale(configMap: VoucherConfigMap, globalScale: nu
     config.ocrZones = ocrZones
     config.width = config.width * globalScale
     config.height = config.height * globalScale
+    config.marginBottom = config.marginBottom * globalScale
 
     ret.set(bankName, config)
   }

@@ -105,9 +105,9 @@ export function resizeAndSaveImg(
 // split one voucher item from a page and save it
 function parseSplitPage(options: SplitPageOpts): Observable<ImgFileInfo> {
   const { index, srcPath, pageHeight } = options
-  const { width } = options.itemConfig
+  const { width, marginBottom } = options.itemConfig
   let { height } = options.itemConfig
-  const marginBottom = 36  // pixel. ca 3mm during 300dpi
+  // const marginBottom = 36  // pixel. ca 3mm during 300dpi
   const x = 0
   const y = index * height
 

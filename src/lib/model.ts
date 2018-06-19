@@ -73,6 +73,8 @@ export interface VoucherConfig {
   bankName: BankName
   width: number
   height: number
+  // pixel for splitPage. positive for more hieght, negative for less height. if value 36 ca 3mm during 300dpi
+  marginBottom: number
   ocrFields: OcrFields
   ocrDefaultLangs: OcrLangs
   ocrFieldLangs?: Partial<OcrFieldLangs>
