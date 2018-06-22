@@ -47,6 +47,8 @@ export const enum FieldName {
   amount = 'amount', // money amount
   bank = 'bank',
   date = 'date',
+  destAccountNumber = 'destAccountNumber',
+  paymentAccountNumber = 'paymentAccountNumber',
   sn = 'sn',  // serial number
 }
 

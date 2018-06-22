@@ -404,6 +404,14 @@ function processZoneImgRow(zoneRet: OcrZoneRet): OcrZoneRet {
     case FieldName.sn:
       ret.value = value.trim()
       break
+
+    case FieldName.destAccountNumber:
+      ret.value = value.trim()
+      break
+
+    case FieldName.paymentAccountNumber:
+      ret.value = value.trim()
+      break
   }
 
   return ret
