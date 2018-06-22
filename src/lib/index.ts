@@ -16,7 +16,16 @@ import {
   tap,
  } from 'rxjs/operators'
 
-import { createDir, isFileExists, join, rimraf, unlinkAsync } from '../shared/index'
+import {
+  basename,
+  copyFileAsync,
+  createDir,
+  isFileExists,
+  isPathAcessible,
+  join,
+  rimraf,
+  unlinkAsync,
+} from '../shared/index'
 
 import { initialBaseTmpDir, initialResizeImgDir, initialSplitTmpDir, zoneTmpDirPrefix } from './config'
 import { resizeAndSaveImg, splitPagetoItems } from './img-process'
@@ -80,11 +89,13 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
     resizeImgDir,
     voucherConfigMap,
     globalScale,
+    skipImgDir,
   } = options
 
   const baseDir = baseTmpDir ? baseTmpDir : initialBaseTmpDir
   const splitDir = splitTmpDir ? splitTmpDir : initialSplitTmpDir
   const resizeDir = resizeImgDir ? resizeImgDir : initialResizeImgDir
+  const skipDir = skipImgDir ? join(skipImgDir, moment().format('YYYYMMDD')) : ''
 
   // if config set for 300api, but source image from 600dpi, then set globalSale=600/300. default is 1
   const voucherConfigMapNew = parseVoucherConfigMapScale(voucherConfigMap, globalScale)
@@ -104,6 +115,7 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
     bankRegexpOptsMap,
     debug: !! debug,
     lang: defaultOcrLang,
+    skipImgDir: skipDir,
   }
 
   const ret$ = recognizePageBank(bankOpts).pipe(
@@ -173,6 +185,7 @@ function recognizePageBank(options: RecognizePageBankOpts): Observable<PageBankR
     bankRegexpOptsMap,
     debug,
     lang,
+    skipImgDir, // with YYYYMMDD subfolder
   } = options
 
   const zoneTmpDir = join(baseDir, zoneTmpDirPrefix, Math.random().toString())
@@ -221,11 +234,23 @@ function recognizePageBank(options: RecognizePageBankOpts): Observable<PageBankR
       if (bankName === BankName.NA || ! pagePath) {
         // throw new Error('recognize bank of page fail. no matached regexp')
         console.info(`recognize bank of page fail. no matached regexp. file: "${path}", pagePath: "${pagePath}" `)
+        cpSkipImg(path, skipImgDir)
       }
       debug || rimraf(zoneTmpDir).catch(console.info)
     }),
   )
 
+}
+
+
+async function cpSkipImg(srcPath: string, skipImgDir: string | void) {
+  if (! skipImgDir) {
+    return
+  }
+  if (! await isPathAcessible(skipImgDir)) {
+    await createDir(skipImgDir)
+  }
+  copyFileAsync(srcPath, join(skipImgDir, basename(srcPath))).catch(console.error)
 }
 
 

@@ -11,6 +11,7 @@ export interface OcrOpts {
   jpegQuality: number // result image quality (0, 100]
   resizeImgDir?: string // store result images
   scale: number // save resize result image  (0, 1]
+  skipImgDir?: string // folder store images not recogniezed bank
   // default 1. if item of voucherConfigMap for 300api, but source image is 600dpi then set thie value to 600/300==2
   globalScale: number
   splitTmpDir?: string  // store temp split images to ocr
@@ -184,6 +185,7 @@ export interface RecognizePageBankOpts {
   bankRegexpOptsMap: BankRegexpOptsMap
   debug: boolean
   lang: string
+  skipImgDir?: string // folder store skip images which not recognized with bank
 }
 
 export interface BatchOcrAndRetrieve {
