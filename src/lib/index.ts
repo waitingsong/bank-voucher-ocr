@@ -200,10 +200,14 @@ function recognizePageBank(options: RecognizePageBankOpts): Observable<PageBankR
     skipImgDir, // with YYYYMMDD subfolder
   } = options
 
-  const zoneTmpDir = join(baseDir, zoneTmpDirPrefix, Math.random().toString())
+  const zoneTmpDir = join(baseDir, zoneTmpDirPrefix, `${ basename(path) }-${ Math.random().toString() }`)
   debug && console.info('recognize pageBank:', zoneTmpDir, path)
 
   return ofrom(createDir(zoneTmpDir)).pipe(
+    catchError(err => {
+      console.info(err)
+      return of(null)
+    }),
     mergeMap(() => cropImgZone(join(path), zoneTmpDir, bankZone)), // 切分page title区域
     concatMap(zoneInfo => { // ocr识别银行名称区域
       return runOcr(zoneInfo.path, lang).pipe(
