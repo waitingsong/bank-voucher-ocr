@@ -48,7 +48,9 @@ export function splitPagetoItems(
               mergeMap(fileInfo => {
                 const fileMap = <VoucherImgMap> new Map()
 
-                fileMap.set(fileInfo.name, fileInfo)
+                if (fileInfo.name) {
+                  fileMap.set(fileInfo.name, fileInfo)
+                }
                 return of(fileMap)
               }),
             )
@@ -115,6 +117,17 @@ function parseSplitPage(options: SplitPageOpts): Observable<ImgFileInfo> {
     height = pageHeight - y
   }
 
+  if (height / pageHeight < 0.1 || height < 100) {
+    const ret: ImgFileInfo = {
+      name: '',
+      path: '',
+      width: 0,
+      height: 0,
+      size: 0,
+    }
+    return of(ret)
+  }
+
   const curDate = moment().format('YYYYMMDD')
   const dst = join(options.targetDir, `${curDate}-${ Math.random() }-${index}.jpg`)
   const opts = {
@@ -126,6 +139,7 @@ function parseSplitPage(options: SplitPageOpts): Observable<ImgFileInfo> {
     x,
     y,
   }
+  // console.info('split page opts:', opts)
 
   return ofrom(crop(opts)).pipe(
     mergeMap((info: IInfoResult) => {
