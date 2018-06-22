@@ -150,7 +150,7 @@ function calcItemsPerPage(pageHeight: number, itemHeight: number): number {
   const delta = 33  // pixel ca 3mm during 300dpi
 
   return pageHeight >= itemHeight
-    ? Math.floor((pageHeight + delta) / itemHeight)
+    ? Math.ceil((pageHeight + delta) / itemHeight)
     : 1 // use one !
 }
 
