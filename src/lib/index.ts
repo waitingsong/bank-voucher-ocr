@@ -61,8 +61,20 @@ export class Bvo {
     const resizeDir = resizeImgDir ? resizeImgDir : initialResizeImgDir
 
     ofrom(createDir(baseDir)).pipe(
+      catchError(err => {
+        console.info(err)
+        return of(null)
+      }),
       concatMap(() => createDir(splitDir)),
+      catchError(err => {
+        console.info(err)
+        return of(null)
+      }),
       concatMap(() => createDir(resizeDir)),
+      catchError(err => {
+        console.info(err)
+        return of(null)
+      }),
     )
       .subscribe(
         () => {},
