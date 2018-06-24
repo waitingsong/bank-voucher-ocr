@@ -349,7 +349,7 @@ function batchOcrAndRetrieve(options: BatchOcrAndRetrieve): Observable<OcrRetInf
   const { bankName } = bankConfig
 
   const del$ = ofrom(zoneImgMap.entries()).pipe(
-    delay(5000),
+    delay(15000),
     mergeMap(([, imgInfo]) => {
       return defer(async () => {
         const img = imgInfo.path
