@@ -309,7 +309,11 @@ function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRetInfo> {
     voucherConfigMap,
   } = options
 
-  const zoneTmpDir = join(baseDir, zoneTmpDirPrefix, moment().format('YYYYMMDD') + '-' + Math.random().toString())
+  const zoneTmpDir = join(
+    baseDir,
+    zoneTmpDirPrefix,
+    `${ basename(imgFile.path) }-${ Math.random().toString() }`,
+  )
   const bankConfig = getOcrZoneOptsByBankName(bankName, voucherConfigMap)
 
   if (! bankConfig) {
