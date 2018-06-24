@@ -8,6 +8,7 @@ import {
 } from 'rxjs/operators'
 
 import {
+  basename,
   join,
 } from '../shared/index'
 
@@ -127,9 +128,10 @@ function parseSplitPage(options: SplitPageOpts): Observable<ImgFileInfo> {
     }
     return of(ret)
   }
-
+  const filename = basename(srcPath)
+  const name = filename.split('.')[0]
   const curDate = moment().format('YYYYMMDD')
-  const dst = join(options.targetDir, `${curDate}-${ Math.random() }-${index}.jpg`)
+  const dst = join(options.targetDir, `${curDate}-${name}-${ Math.random() }-${index}.jpg`)
   const opts = {
     dst,
     src: srcPath,
