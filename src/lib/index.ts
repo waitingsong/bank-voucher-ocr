@@ -1,17 +1,15 @@
 import * as moment_ from 'moment'
 import { cpus } from 'os'
-import { defer, from as ofrom, of, Observable } from 'rxjs'
+import { from as ofrom, of, Observable } from 'rxjs'
 import {
   catchError,
   concatMap,
   defaultIfEmpty,
-  delay,
   filter,
   map,
   mapTo,
   mergeMap,
   reduce,
-  retry,
   skipWhile,
   take,
   tap,
@@ -317,7 +315,7 @@ function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRetInfo> {
   const zoneTmpDir = join(
     baseDir,
     zoneTmpDirPrefix,
-    `${ basename(imgFile.path) }-${ Math.random().toString() }`,
+    `${ basename(imgFile.path) }`,
   )
   const bankConfig = getOcrZoneOptsByBankName(bankName, voucherConfigMap)
 
@@ -335,7 +333,13 @@ function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRetInfo> {
       }
       return batchOcrAndRetrieve(opts)
     }),
-    // do NOT delete zoneTmpDir here
+    tap(() => {
+      if (! debug) {
+        setTimeout(dir => {
+          rimraf(dir).catch(console.info)
+        }, 5000, zoneTmpDir)
+      }
+    }),
   )
 
   return stream$
@@ -352,33 +356,33 @@ function batchOcrAndRetrieve(options: BatchOcrAndRetrieve): Observable<OcrRetInf
 
   const { bankName } = bankConfig
 
-  const del$ = ofrom(zoneImgMap.entries()).pipe(
-    delay(15000),
-    mergeMap(([, imgInfo]) => {
-      return defer(async () => {
-        const img = imgInfo.path
-        const txt = img + '.txt'
+  // const del$ = ofrom(zoneImgMap.entries()).pipe(
+  //   delay(15000),
+  //   mergeMap(([, imgInfo]) => {
+  //     return defer(async () => {
+  //       const img = imgInfo.path
+  //       const txt = img + '.txt'
 
-        if (await isFileExists(img)) {
-          await rimraf(img)
-        }
-        if (await isFileExists(txt)) {
-          await rimraf(txt)
-        }
-        return null
-      }).pipe(
-        delay(20000),
-        retry(2),
-        catchError(err => {
-          console.info('Delete zone file retry failed:', err)
-          return of(null)
-        }),
-      )
-    }),
-    catchError(() => {
-      return of(null)
-    }),
-  )
+  //       if (await isFileExists(img)) {
+  //         await rimraf(img)
+  //       }
+  //       if (await isFileExists(txt)) {
+  //         await rimraf(txt)
+  //       }
+  //       return null
+  //     }).pipe(
+  //       delay(20000),
+  //       retry(2),
+  //       catchError(err => {
+  //         console.info('Delete zone file retry failed:', err)
+  //         return of(null)
+  //       }),
+  //     )
+  //   }),
+  //   catchError(() => {
+  //     return of(null)
+  //   }),
+  // )
 
   const process$ = ofrom(zoneImgMap.entries()).pipe(
     concatMap((zoneImgRow: ZoneImgRow) => {
@@ -387,7 +391,7 @@ function batchOcrAndRetrieve(options: BatchOcrAndRetrieve): Observable<OcrRetInf
     reduce<OcrZoneRet, OcrRetInfo>((acc, curr) => acc.set(curr.fieldName, curr.value), new Map()),
     map(retMap => retMap.set(FieldName.bank, bankName)),
     map(retMap => setDefaultValue(retMap, ocrFields, defaultValue)),
-    tap(() => debug || del$.subscribe()), // 删除zone切分图片
+    // tap(() => debug || del$.subscribe()), // 删除zone切分图片
   )
 
   return process$
