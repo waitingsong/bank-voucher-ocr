@@ -6,6 +6,7 @@ export type Filename = string
 export interface OcrOpts {
   bankZone: OcrZone // for recognize bank from page
   baseTmpDir?: string
+  concurrent?: number // os.cpus() if invalid
   debug?: boolean
   defaultOcrLang: string  // default tesseract ocr lang, eg 'eng'
   jpegQuality: number // result image quality (0, 100]
@@ -66,7 +67,10 @@ export interface OcrRetObject {
 
 export interface OcrZoneRet {
   fieldName: FieldName
+  zoneName: FieldName
   value: string
+  usedLang: string
+  txtPath: string // ocr result txt file without extension
 }
 
 // regexp match item with order
@@ -172,7 +176,6 @@ export interface PageToImgRet {
 export interface RecognizeFieldsOpts {
   bankName: BankName
   baseDir: string
-  concurrent: number
   debug: boolean
   defaultValue: string
   imgFile: ImgFileInfo
@@ -195,7 +198,6 @@ export interface BatchOcrAndRetrieve {
   bankConfig: VoucherConfig
   ocrFields: OcrFields
   defaultValue: string
-  concurrent: number
   debug: boolean
 }
 
@@ -206,3 +208,7 @@ export interface SaveImgAndPruneOpts {
   jpegQuality: number // 1-100
   debug: boolean
 }
+
+export type OcrRetTxtMap = Map<FieldName, OcrRetLangMap>
+export type OcrRetLangMap = Map<string, string> // Map<lang, txtPath>  txtPath without extension
+

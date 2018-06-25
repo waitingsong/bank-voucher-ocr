@@ -4,7 +4,7 @@ import { map } from 'rxjs/operators'
 import { readFileAsync } from '../shared/index'
 
 import {
-  FieldName, PreProcessBufferFn, RegexpArray, ZoneRegexpOpts,
+  FieldName, OcrRetLangMap, OcrRetTxtMap, PreProcessBufferFn, RegexpArray, ZoneRegexpOpts,
 } from './model'
 
 
@@ -128,4 +128,39 @@ function regexMatch(content: string, regexps: RegexpArray, debug: boolean = fals
       }
     }
   }
+}
+
+
+export function getOcrRetLangPath(ocrRetTxtMap: OcrRetTxtMap, fieldName: FieldName, lang: string): string {
+  const ocrRetLangMap = getOcrRetLangMap(ocrRetTxtMap, fieldName)
+
+  if (! ocrRetLangMap) {
+    return ''
+  }
+  const txtPath = ocrRetLangMap.get(lang)
+
+  return txtPath ? txtPath : ''
+}
+
+export function updateOcrRetTxtMap(ocrRetTxtMap: OcrRetTxtMap, fieldName: FieldName, lang: string, txtPath: string) {
+  if (! fieldName || ! lang || ! txtPath) {
+    return
+  }
+  let ocrRetLangMap = getOcrRetLangMap(ocrRetTxtMap, fieldName)
+
+  if (! ocrRetLangMap) {
+    ocrRetLangMap = new Map()
+  }
+  if (lang && txtPath) {
+    updateOcrRetLangMap(ocrRetLangMap, lang, txtPath)
+  }
+  ocrRetTxtMap.set(fieldName, ocrRetLangMap)
+}
+
+function updateOcrRetLangMap(ocrRetLangMap: OcrRetLangMap, lang: string, txtPath: string): void {
+  ocrRetLangMap.set(lang, txtPath)
+}
+
+function getOcrRetLangMap(ocrRetTxtMap: OcrRetTxtMap, fieldName: FieldName): OcrRetLangMap | void {
+  return ocrRetTxtMap.get(fieldName)
 }

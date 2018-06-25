@@ -1,4 +1,5 @@
 import * as moment_ from 'moment'
+import { cpus } from 'os'
 import { defer, from as ofrom, of, Observable } from 'rxjs'
 import {
   catchError,
@@ -32,13 +33,19 @@ import { resizeAndSaveImg, splitPagetoItems } from './img-process'
 import {
   BankName, BankRegexpOptsMap, BatchOcrAndRetrieve,
   FieldName,
-  OcrFields, OcrFieldLangs, OcrLangs, OcrOpts, OcrRetInfo, OcrZone, OcrZoneRet,
+  OcrFields, OcrFieldLangs, OcrLangs, OcrOpts, OcrRetInfo, OcrRetTxtMap, OcrZone, OcrZoneRet,
   PageBankRet, PageToImgRet,
   RecognizeFieldsOpts, RecognizePageBankOpts, RegexpArray,
   SaveImgAndPruneOpts, VoucherConfig, VoucherConfigMap, ZoneImgRow, ZoneRegexpOpts,
 } from './model'
 import { cropImgAllZones, cropImgZone, getOcrZoneOptsByBankName, runOcr } from './ocr-process'
-import { getRegexpOptsByName, prepareContent, retrieveKeyValuesFromOcrResult } from './txt-process'
+import {
+  getOcrRetLangPath,
+  getRegexpOptsByName,
+  prepareContent,
+  retrieveKeyValuesFromOcrResult,
+  updateOcrRetTxtMap,
+} from './txt-process'
 
 
 const moment = moment_
@@ -93,6 +100,7 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
   const {
     bankZone,
     baseTmpDir,
+    concurrent,
     debug,
     defaultOcrLang,
     jpegQuality,
@@ -108,6 +116,7 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
   const splitDir = splitTmpDir ? splitTmpDir : initialSplitTmpDir
   const resizeDir = resizeImgDir ? resizeImgDir : initialResizeImgDir
   const skipDir = skipImgDir ? join(skipImgDir, moment().format('YYYYMMDD')) : ''
+  const cnumber = typeof concurrent === 'number' && concurrent > 0 ? concurrent : cpus().length
 
   // if config set for 300api, but source image from 600dpi, then set globalSale=600/300. default is 1
   const voucherConfigMapNew = parseVoucherConfigMapScale(voucherConfigMap, globalScale)
@@ -132,11 +141,11 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
 
   const ret$ = recognizePageBank(bankOpts).pipe(
     filter(({ bankName }) => !! bankName && bankName !== BankName.NA),
-    concatMap(({ bankName, pagePath }) => { // 切分页面为多张凭证
+    mergeMap(({ bankName, pagePath }) => { // 切分页面为多张凭证
       !! debug && console.info('start split page')
       return splitPageToImgs(pagePath, bankName, splitDir, voucherConfigMapNew)
     }),
-    concatMap(({ bankName, imgFile }) => { // 单张凭证处理
+    mergeMap(({ bankName, imgFile }) => { // 单张凭证处理
       const ocrFields: OcrFields | void = getOcrFields(bankName, voucherConfigMapNew)
 
       if (!ocrFields) {
@@ -146,7 +155,6 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
       const opts = {
         bankName,
         baseDir,
-        concurrent: 2,
         debug: !! debug,
         defaultValue: '',
         imgFile,
@@ -165,7 +173,7 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
         }),
       )
 
-    }),
+    }, cnumber > 0 ? cnumber : 1),
     mergeMap(retInfo => {
       const opts = {
         retInfo,
@@ -210,8 +218,7 @@ function recognizePageBank(options: RecognizePageBankOpts): Observable<PageBankR
     }),
     mergeMap(() => cropImgZone(join(path), zoneTmpDir, bankZone)), // 切分page title区域
     concatMap(zoneInfo => { // ocr识别银行名称区域
-      return runOcr(zoneInfo.path, lang).pipe(
-        // map(() => ({ path, zoneImgPath: zoneInfo.path })),
+      return runOcr(zoneInfo.path, lang, zoneInfo.path).pipe(
         mapTo(zoneInfo.path),
         // tap(() => console.info('ocr completed')),
       )
@@ -300,7 +307,6 @@ function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRetInfo> {
   const {
     bankName,
     baseDir,
-    concurrent,
     debug,
     defaultValue,
     imgFile,
@@ -321,11 +327,10 @@ function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRetInfo> {
 
   const stream$: Observable<OcrRetInfo> = ofrom(createDir(zoneTmpDir)).pipe(
     // 切分图片区域分别做ocr识别
-    concatMap(() => cropImgAllZones(imgFile.path, zoneTmpDir, ocrFields, bankConfig.ocrZones)),
+    mergeMap(() => cropImgAllZones(imgFile.path, zoneTmpDir, ocrFields, bankConfig.ocrZones)),
     concatMap(fileMap => {
       const opts: BatchOcrAndRetrieve = {
         bankConfig, ocrFields, defaultValue, debug,
-        concurrent: concurrent > 0 ? concurrent : 2,
         zoneImgMap: fileMap,
       }
       return batchOcrAndRetrieve(opts)
@@ -342,7 +347,6 @@ function batchOcrAndRetrieve(options: BatchOcrAndRetrieve): Observable<OcrRetInf
     bankConfig,
     ocrFields,
     defaultValue,
-    concurrent,
     debug,
   } = options
 
@@ -378,7 +382,7 @@ function batchOcrAndRetrieve(options: BatchOcrAndRetrieve): Observable<OcrRetInf
 
   const process$ = ofrom(zoneImgMap.entries()).pipe(
     concatMap((zoneImgRow: ZoneImgRow) => {
-      return ocrAndPickFromZoneImg(zoneImgRow, bankConfig, concurrent, debug)
+      return ocrAndPickFromZoneImg(zoneImgRow, bankConfig, debug)
     }),
     reduce<OcrZoneRet, OcrRetInfo>((acc, curr) => acc.set(curr.fieldName, curr.value), new Map()),
     map(retMap => retMap.set(FieldName.bank, bankName)),
@@ -410,7 +414,7 @@ function setDefaultValue(info: OcrRetInfo, ocrFields: OcrFields, defaultValue: s
 
 function processZoneImgRow(zoneRet: OcrZoneRet): OcrZoneRet {
   const { fieldName, value } = zoneRet
-  const ret = <OcrZoneRet> { fieldName, value }
+  const ret: OcrZoneRet = { ...zoneRet }
 
   switch (fieldName) {
     case FieldName.amount:
@@ -587,28 +591,31 @@ function genFieldLangs(
 function ocrAndPickFromZoneImg(
   zoneImgRow: ZoneImgRow,
   config: VoucherConfig,
-  concurrent: number = 2,
   debug: boolean = false,
 ): Observable<OcrZoneRet> {
 
   const { ocrDefaultLangs, ocrFieldLangs, regexpOpts, ocrFields } = config
+  const ocrRetTxtMap = <OcrRetTxtMap> new Map()
 
   return ofrom(Object.entries(ocrFields)).pipe(
     filter(data => {
       const zoneName: FieldName | void = data[1]
       return !! zoneName && zoneName === zoneImgRow[0]
     }),
-    mergeMap(data => {
+    concatMap(data => {
       const fieldName = <FieldName> data[0]
+      const zoneName = <FieldName> data[1]
       return ocrAndPickFieldFromZoneImg(
         fieldName,
+        zoneName,
         zoneImgRow,
         regexpOpts,
         ocrDefaultLangs,
         ocrFieldLangs,
         debug,
+        ocrRetTxtMap,
       )
-    }, concurrent),
+    }),
   )
 
 }
@@ -616,11 +623,13 @@ function ocrAndPickFromZoneImg(
 
 function ocrAndPickFieldFromZoneImg(
   fieldName: FieldName,
+  zoneName: FieldName,
   zoneImgRow: ZoneImgRow,
   regexpOpts: ZoneRegexpOpts,
   defaultLangs: OcrLangs,
   fieldLangs: Partial<OcrFieldLangs> | void,
   debug: boolean = false,
+  ocrRetTxtMap: OcrRetTxtMap,
 ): Observable<OcrZoneRet> {
 
   const [, zoneImg] = zoneImgRow
@@ -635,24 +644,66 @@ function ocrAndPickFieldFromZoneImg(
   // console.info(`lop langs:----field: ${fieldName}:`, langs)
   return ofrom(langs).pipe(
     // MUST concatMap
-    concatMap<string, ZoneImgRow>(lang => {
-      // console.log(`fld "${fieldName}" use lang:`, lang, zoneImg.path)
-      return runOcr(zoneImg.path, lang)
+    concatMap(lang => {
+      // console.info(`\n\n\nfld "${fieldName}" zoneName: "${zoneName}" use lang: ${lang}, path: "${zoneImg.path}"\n`)
+      const path = getOcrRetLangPath(ocrRetTxtMap, zoneName, lang)
+
+      if (path) {
+        // console.info(`reused txtPath. fieldName: "${fieldName}", zoneName: "${zoneName}", lang: "${lang}",
+        //   txtPath: "${path}"\n\n`)
+        return retrieveKeyValuesFromOcrResult(
+          path + '.txt',
+          regexp,
+          prepareContent,
+          debug,
+        ).pipe(
+          map(val => {
+            return <OcrZoneRet> {
+              fieldName,
+              zoneName,
+              value: val,
+              usedLang: lang,
+              txtPath: path,
+            }
+          }),
+        )
+
+      }
+      else {
+        const imgPath = zoneImg.path
+        const txtPath = imgPath.split('.').slice(0, -1).join('.') + `-${Math.random()}`
+
+        return runOcr(imgPath, lang, txtPath).pipe(
+          concatMap(() => {
+            // console.info(`\n\n--------- usedLang: "${lang}", txtPath:"${txtPath}"`)
+            return retrieveKeyValuesFromOcrResult(
+              txtPath + '.txt',
+              regexp,
+              prepareContent,
+              debug,
+            ).pipe(
+              map(val => {
+                return <OcrZoneRet> {
+                  fieldName,
+                  zoneName,
+                  value: val,
+                  usedLang: lang,
+                  txtPath,
+                }
+              }),
+            )
+
+          }),
+        )
+      }
+
     }),
 
-    concatMap(() => {
-      return retrieveKeyValuesFromOcrResult(
-        zoneImg.path + '.txt',
-        regexp,
-        prepareContent,
-        debug,
-      ).pipe(
-        map(val => ({ fieldName, value: val })),
-      )
-
+    tap(({ zoneName: zone, usedLang, txtPath }) => {
+      updateOcrRetTxtMap(ocrRetTxtMap, zone, usedLang, txtPath)
     }),
 
-    skipWhile((data, index) => {
+    skipWhile((data: OcrZoneRet, index: number) => {
       const valid = validateZoneImgRow(data.fieldName, data.value)
       return !valid && index !== maxLangIndex
     }),
@@ -663,7 +714,7 @@ function ocrAndPickFieldFromZoneImg(
       if (typeof data.value !== 'string') {
         data.value = ''
       }
-      return <OcrZoneRet> data
+      return data
     }),
 
     map(processZoneImgRow),

@@ -88,13 +88,13 @@ export function cropImgZone(srcPath: string, targetDir: string, ocrZoneOpts: Ocr
 
 }
 
-// ocr a iamge file
-export function runOcr(path: string, lang: string): Observable<void> {
-  // second path will be append with '.txt'
+// ocr a iamge file, txtPath without extension
+export function runOcr(imgPath: string, lang: string, txtPath: string): Observable<void> {
+  // second path will be append with '.txt' by tesseract
   if (! lang) {
     lang = 'eng'
   }
-  const cmd = `tesseract "${path}" "${path}" -l ${lang}`
+  const cmd = `tesseract "${imgPath}" "${txtPath}" -l ${lang}`
   // const opts = {
   //   cwd: 'd:/Program/Tesseract-OCR/tessdata',
   // }
