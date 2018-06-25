@@ -530,7 +530,7 @@ function getOcrFields(bankName: BankName, configMap: VoucherConfigMap): OcrField
 function saveImgAndPrune(options: SaveImgAndPruneOpts): Observable<OcrRetInfo> {
   const { retInfo, resizeDir, debug, scale, jpegQuality } = options
 
-  let filename = retInfo.get('filename')
+  const filename = retInfo.get('filename')
   const path = retInfo.get('path')
   const sn = retInfo.get(FieldName.sn)
 
@@ -540,18 +540,24 @@ function saveImgAndPrune(options: SaveImgAndPruneOpts): Observable<OcrRetInfo> {
   if (!path) {
     throw new Error(`result info map invalid with empty path. info: ${retInfo}`)
   }
+  // YYYYMMDD-A15295623630009-0.31486898522590034-pageSplitItemIndex.jpg
+  const arr = filename.split('.').slice(0, -1).join('').split('-')
+  arr.splice(2, 1)
+  let filename2 = arr.join('-')
+
   if (sn) {
-    const name = filename.split('.').slice(0, -1)
-    filename = name + `-${sn.replace(/[^\d\w]/g, '_')}.jpg`
+    filename2 = filename2 + `-${sn.replace(/[^\d\w]/g, '_')}`
   }
+  filename2 = filename2 + '.jpg'
+
   const curDate = moment().format('YYYY-MM-DD')
   const targetPath = join(
     resizeDir,
     curDate,
-    filename,
+    filename2,
   )
 
-  retInfo.set('filename', filename)
+  retInfo.set('filename', filename2)
 
   return resizeAndSaveImg(path, targetPath, scale, jpegQuality).pipe(
     map(imgInfo => {
