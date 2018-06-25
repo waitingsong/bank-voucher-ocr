@@ -1,7 +1,5 @@
 import { defer, Observable } from 'rxjs'
-import {
-  map,
-} from 'rxjs/operators'
+import { map } from 'rxjs/operators'
 
 import { readFileAsync } from '../shared/index'
 
