@@ -211,9 +211,8 @@ function recognizePageBank(options: RecognizePageBankOpts): Observable<PageBankR
     mergeMap(() => cropImgZone(join(path), zoneTmpDir, bankZone)), // 切分page title区域
     concatMap(zoneInfo => { // ocr识别银行名称区域
       return runOcr(zoneInfo.path, lang).pipe(
-        map(() => ({ path, zoneImgPath: zoneInfo.path })),
+        // map(() => ({ path, zoneImgPath: zoneInfo.path })),
         mapTo(zoneInfo.path),
-        catchError(() => of(zoneInfo.path)),
         // tap(() => console.info('ocr completed')),
       )
     }),
@@ -638,10 +637,7 @@ function ocrAndPickFieldFromZoneImg(
     // MUST concatMap
     concatMap<string, ZoneImgRow>(lang => {
       // console.log(`fld "${fieldName}" use lang:`, lang, zoneImg.path)
-      return runOcr(zoneImg.path, lang).pipe(
-        mapTo(true),
-        catchError(() => of(true)),  // tesseract will exit with code(0) but out by stderr
-      )
+      return runOcr(zoneImg.path, lang)
     }),
 
     concatMap(() => {

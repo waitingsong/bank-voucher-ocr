@@ -1,6 +1,6 @@
 import { crop, IInfoResult } from 'easyimage'
-import { from as ofrom, Observable } from 'rxjs'
-import { map, mergeMap, reduce } from 'rxjs/operators'
+import { from as ofrom, of, Observable } from 'rxjs'
+import { catchError, last, map, mapTo, mergeMap, reduce } from 'rxjs/operators'
 import run from 'rxrunscript'
 
 import { join } from '../shared/index'
@@ -89,7 +89,7 @@ export function cropImgZone(srcPath: string, targetDir: string, ocrZoneOpts: Ocr
 }
 
 // ocr a iamge file
-export function runOcr(path: string, lang: string): Observable<Buffer> {
+export function runOcr(path: string, lang: string): Observable<void> {
   // second path will be append with '.txt'
   if (! lang) {
     lang = 'eng'
@@ -98,5 +98,9 @@ export function runOcr(path: string, lang: string): Observable<Buffer> {
   // const opts = {
   //   cwd: 'd:/Program/Tesseract-OCR/tessdata',
   // }
-  return run(cmd)
+  return run(cmd).pipe(
+    last(),
+    catchError(() => of(void 0)), // tesseract will exit with code(0) but output with stderr
+    mapTo(void 0),
+  )
 }
