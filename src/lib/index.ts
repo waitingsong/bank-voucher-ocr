@@ -321,7 +321,8 @@ function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRetInfo> {
   }
 
   const stream$: Observable<OcrRetInfo> = ofrom(createDir(zoneTmpDir)).pipe(
-    mergeMap(() => cropImgAllZones(imgFile.path, zoneTmpDir, bankConfig.ocrZones)), // 切分图片区域分别做ocr识别
+    // 切分图片区域分别做ocr识别
+    concatMap(() => cropImgAllZones(imgFile.path, zoneTmpDir, ocrFields, bankConfig.ocrZones)),
     concatMap(fileMap => {
       const opts: BatchOcrAndRetrieve = {
         bankConfig, ocrFields, defaultValue, debug,

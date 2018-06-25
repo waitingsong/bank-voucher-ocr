@@ -6,8 +6,8 @@ import run from 'rxrunscript'
 import { join } from '../shared/index'
 
 import {
-  BankName, FieldName, ImgFileInfo, OcrZone, VoucherConfig,
-  VoucherConfigMap, ZoneImgMap,
+  BankName, FieldName, ImgFileInfo, OcrFields, OcrZone,
+  VoucherConfig, VoucherConfigMap, ZoneImgMap,
 } from './model'
 
 
@@ -20,10 +20,28 @@ export function getOcrZoneOptsByBankName(bankName: BankName, configMap: VoucherC
 export function cropImgAllZones(
   srcPath: string,
   zoneTmpDir: string,
+  ocrFields: OcrFields,
   ocrZoneOptsArr: ReadonlyArray<OcrZone>,
 ): Observable<ZoneImgMap> {
 
-  return ofrom(ocrZoneOptsArr).pipe(
+  const flds = <OcrZone[]> []
+  const srcFldSet = <Set<FieldName>> new Set()
+
+  for (const srcFld of Object.values(ocrFields)) {
+    if (! srcFld || srcFldSet.has(srcFld)) {
+      continue
+    }
+    srcFldSet.add(srcFld)
+  }
+  for (const row of ocrZoneOptsArr) {
+    const fld = row.zoneName
+
+    if (fld && srcFldSet.has(fld)) {
+      flds.push(row)
+    }
+  }
+
+  return ofrom(flds).pipe(
     mergeMap(ocrZoneOpts => {
       return cropImgZone(srcPath, zoneTmpDir, ocrZoneOpts).pipe(
         map(img => {
