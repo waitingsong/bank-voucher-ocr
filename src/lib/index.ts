@@ -31,7 +31,7 @@ import { resizeAndSaveImg, splitPagetoItems } from './img-process'
 import {
   BankName, BankRegexpOptsMap, BatchOcrAndRetrieve,
   FieldName,
-  OcrFields, OcrFieldLangs, OcrLangs, OcrOpts, OcrRetInfo, OcrRetTxtMap, OcrZone, OcrZoneRet,
+  OcrFields, OcrFieldLangs, OcrLangs, OcrOpts, OcrRetInfo, OcrRetInfoKey, OcrRetTxtMap, OcrZone, OcrZoneRet,
   PageBankRet, PageToImgRet,
   RecognizeFieldsOpts, RecognizePageBankOpts, RegexpArray,
   SaveImgAndPruneOpts, VoucherConfig, VoucherConfigMap, ZoneImgRow, ZoneRegexpOpts,
@@ -164,8 +164,8 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
       return <Observable<OcrRetInfo>> recognizeFields(opts).pipe(
         map(retInfo => {
           retInfo.set(FieldName.bank, bankName)
-          retInfo.set('filename', imgFile.name.trim())
-          retInfo.set('path', imgFile.path.trim())
+          retInfo.set(OcrRetInfoKey.filename, imgFile.name.trim())
+          retInfo.set(OcrRetInfoKey.path, imgFile.path.trim())
 
           return retInfo
         }),
@@ -538,8 +538,8 @@ function getOcrFields(bankName: BankName, configMap: VoucherConfigMap): OcrField
 function saveImgAndPrune(options: SaveImgAndPruneOpts): Observable<OcrRetInfo> {
   const { retInfo, resizeDir, debug, scale, jpegQuality } = options
 
-  const filename = retInfo.get('filename')
-  const path = retInfo.get('path')
+  const filename = retInfo.get(OcrRetInfoKey.filename)
+  const path = retInfo.get(OcrRetInfoKey.path)
   const sn = retInfo.get(FieldName.sn)
 
   if (!filename) {
@@ -565,11 +565,11 @@ function saveImgAndPrune(options: SaveImgAndPruneOpts): Observable<OcrRetInfo> {
     filename2,
   )
 
-  retInfo.set('filename', filename2)
+  retInfo.set(OcrRetInfoKey.filename, filename2)
 
   return resizeAndSaveImg(path, targetPath, scale, jpegQuality).pipe(
     map(imgInfo => {
-      retInfo.set('path', imgInfo.path)
+      retInfo.set(OcrRetInfoKey.path, imgInfo.path)
       return retInfo
     }),
     tap(() => {

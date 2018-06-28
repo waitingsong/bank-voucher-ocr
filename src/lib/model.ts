@@ -52,18 +52,18 @@ export const enum FieldName {
   paymentAccountNumber = 'paymentAccountNumber',
   sn = 'sn',  // serial number
 }
-
-
-
-export type OcrRetInfoKey = FieldName | 'filename' | 'path'
-export type OcrRetInfo = Map<OcrRetInfoKey, string>
-export type VoucherConfigMap = Map<BankName, VoucherConfig>
-// for transport
-export interface OcrRetObject {
-  [key: string]: string  // OcrRetInfoKey: string
+export const enum OcrRetInfoKey {
+  filename = 'filename',
+  path = 'path',
 }
 
-// export type FieldNameTypeKey = keyof typeof FieldName
+export type OcrRetInfo = Map<OcrRetInfoKey | FieldName, string>
+export type VoucherConfigMap = Map<BankName, VoucherConfig>
+// for transport
+export type OcrRetObjectTypeKey = FieldNameTypeKey | keyof typeof OcrRetInfoKey
+export type OcrRetObject = {
+  [key in OcrRetObjectTypeKey]: string  // OcrRetInfoKey: string
+}
 
 export interface OcrZoneRet {
   fieldName: FieldName
