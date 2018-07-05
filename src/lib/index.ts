@@ -228,7 +228,7 @@ function recognizePageBank(options: RecognizePageBankOpts): Observable<PageBankR
           return retrieveKeyValuesFromOcrResult(
             zoneImgPath + '.txt',
             regexps,
-            buf => buf.toString().replace(/(?<=\S)[. ]{1,2}(?=\S)/g, ''),
+            buf => buf.toString().replace(/(?<=\S)[. ]{1,2}(?=\S)/g, '').replace(/\n{2,}/g, ''),
             debug,
           ).pipe(
             map(val => ({ bankName, value: val })),
