@@ -427,6 +427,9 @@ function processZoneImgRow(zoneRet: OcrZoneRet): OcrZoneRet {
 
     case FieldName.date:
       ret.value = value.trim().replace(/\D/g, '') // YYYYMMDD
+      if (ret.value && ret.value.slice(0, 1) === '0') {
+        ret.value = '2' + ret.value
+      }
       break
 
     case FieldName.sn:
