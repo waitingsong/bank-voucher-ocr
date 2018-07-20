@@ -1,6 +1,6 @@
 import * as moment_ from 'moment'
 import { cpus } from 'os'
-import { from as ofrom, of, Observable } from 'rxjs'
+import { defer, from as ofrom, of, Observable } from 'rxjs'
 import {
   catchError,
   concatMap,
@@ -65,7 +65,7 @@ export class Bvo {
     const splitDir = splitTmpDir ? splitTmpDir : initialSplitTmpDir
     const resizeDir = resizeImgDir ? resizeImgDir : initialResizeImgDir
 
-    ofrom(createDir(baseDir)).pipe(
+    defer(() => createDir(baseDir)).pipe(
       catchError(err => {
         console.info(err)
         return of(null)
@@ -185,7 +185,7 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
     }),
   )
 
-  const imgExists$ = ofrom(isFileExists(imgPath)).pipe(
+  const imgExists$ = defer(() => isFileExists(imgPath)).pipe(
     filter(val => val),
   )
 
@@ -209,7 +209,7 @@ function recognizePageBank(options: RecognizePageBankOpts): Observable<PageBankR
   const zoneTmpDir = join(baseDir, zoneTmpDirPrefix, `${ basename(path) }-${ Math.random().toString() }`)
   debug && console.info('recognize pageBank:', zoneTmpDir, path)
 
-  return ofrom(createDir(zoneTmpDir)).pipe(
+  return defer(() => createDir(zoneTmpDir)).pipe(
     catchError(err => {
       console.info(err)
       return of(null)
@@ -323,7 +323,7 @@ function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRetInfo> {
     throw new Error(`get bankConfig empty with bankName: "${bankName}"`)
   }
 
-  const stream$: Observable<OcrRetInfo> = ofrom(createDir(zoneTmpDir)).pipe(
+  const stream$: Observable<OcrRetInfo> = defer(() => createDir(zoneTmpDir)).pipe(
     // 切分图片区域分别做ocr识别
     mergeMap(() => cropImgAllZones(imgFile.path, zoneTmpDir, ocrFields, bankConfig.ocrZones)),
     concatMap(fileMap => {

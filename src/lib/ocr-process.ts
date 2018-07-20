@@ -1,5 +1,5 @@
 import { crop, IInfoResult } from 'easyimage'
-import { from as ofrom, of, Observable } from 'rxjs'
+import { defer, from as ofrom, of, Observable } from 'rxjs'
 import { catchError, last, map, mapTo, mergeMap, reduce } from 'rxjs/operators'
 import run from 'rxrunscript'
 
@@ -73,7 +73,7 @@ export function cropImgZone(srcPath: string, targetDir: string, ocrZoneOpts: Ocr
   }
   // console.info('croop', srcPath, opts)
 
-  return ofrom(crop(opts)).pipe(
+  return defer(() => crop(opts)).pipe(
     map((info: IInfoResult) => {
       const ret: ImgFileInfo = {
         name: info.name,

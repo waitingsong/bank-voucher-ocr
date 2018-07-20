@@ -1,6 +1,6 @@
 import { crop, info as getImgInfo, resize, IInfoResult } from 'easyimage'
 import * as moment_ from 'moment'
-import { from as ofrom, of, range, Observable } from 'rxjs'
+import { defer, from as ofrom, of, range, Observable } from 'rxjs'
 import {
   concatMap,
   map,
@@ -88,7 +88,7 @@ export function resizeAndSaveImg(
         height: info.height * scale,
         quality,
       }
-      return ofrom(resize(opts))
+      return defer(() => resize(opts))
     }),
     map(info => {
       const ret: ImgFileInfo = {
@@ -143,7 +143,7 @@ function parseSplitPage(options: SplitPageOpts): Observable<ImgFileInfo> {
   }
   // console.info('split page opts:', opts)
 
-  return ofrom(crop(opts)).pipe(
+  return defer(() => crop(opts)).pipe(
     mergeMap((info: IInfoResult) => {
       const ret: ImgFileInfo = {
         name: info.name,
@@ -158,7 +158,7 @@ function parseSplitPage(options: SplitPageOpts): Observable<ImgFileInfo> {
 }
 
 function readImgInfo(path: string): Observable<IInfoResult> {
-  return ofrom(getImgInfo(path))
+  return defer(() => getImgInfo(path))
 }
 
 // calculate item numbers of one scan page
