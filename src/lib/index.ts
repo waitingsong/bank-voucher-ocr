@@ -275,7 +275,7 @@ async function cpSkipImg(srcPath: string, skipImgDir: string | void) {
 
 
 // 切分页面为多张凭证
-function splitPageToImgs(
+export function splitPageToImgs(
   pagePath: string,
   bankName: BankName,
   targetDir: string,
