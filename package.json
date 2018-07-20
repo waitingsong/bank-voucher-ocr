@@ -1,7 +1,7 @@
 {
   "name": "bank-voucher-ocr",
   "author": "waiting",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Bank Voucher ocr by tesseract and retrieve fields",
   "keywords": [
     "voucher",
