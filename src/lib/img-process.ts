@@ -1,6 +1,6 @@
 import { crop, info as getImgInfo, resize, IInfoResult } from 'easyimage'
 import * as moment_ from 'moment'
-import { defer, from as ofrom, of, range, Observable } from 'rxjs'
+import { defer, of, range, Observable } from 'rxjs'
 import {
   concatMap,
   map,
