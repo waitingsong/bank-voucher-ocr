@@ -11,6 +11,7 @@ const production = ! process.env.ROLLUP_WATCH
 const name = parseName(pkg.name)
 const targetDir = dirname(pkg.main)
 const deps = pkg.dependencies
+const peerDeps = pkg.peerDependencies
 
 const banner = `
 /**
@@ -53,8 +54,15 @@ const nodeModule = [
   'fs', 'path', 'util', 'os',
 ]
 
-for (const depName of Object.keys(deps)) {
-  external.push(depName)
+if (deps && Object.keys(deps).length) {
+  for (const depName of Object.keys(deps)) {
+    external.push(depName)
+  }
+}
+if (peerDeps && Object.keys(peerDeps).length) {
+  for (const depName of Object.keys(peerDeps)) {
+    external.push(depName)
+  }
 }
 
 
@@ -125,6 +133,33 @@ if (pkg.browser) {
     },
   )
 }
+
+if (pkg.bin) {
+  const shebang = `#!/usr/bin/env node\n\n${banner}`
+
+  for (const binPath of Object.values(pkg.bin)) {
+    if (! binPath) {
+      continue
+    }
+    const binSrcPath = binPath.includes('dist/') ? binPath : `./dist/${binPath}`
+
+    config.push({
+      external: external.concat(nodeModule),
+      input: binSrcPath,
+      output: [
+        {
+          file: binPath,
+          banner: shebang,
+          format: 'cjs',
+          globals,
+        },
+      ],
+    })
+  }
+
+}
+
+
 
 // remove pkg.name extension if exists
 function parseName(name) {
