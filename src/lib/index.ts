@@ -195,7 +195,7 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
 }
 
 
-function recognizePageBank(options: RecognizePageBankOpts): Observable<PageBankRet> {
+export function recognizePageBank(options: RecognizePageBankOpts): Observable<PageBankRet> {
   const {
     baseDir,
     path,
@@ -300,8 +300,8 @@ export function splitPageToImgs(
 }
 
 
-// 识别区域图片提取指定字段值
-function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRetInfo> {
+/** 识别区域图片提取指定字段值 */
+export function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRetInfo> {
   const {
     bankName,
     baseDir,
@@ -345,7 +345,7 @@ function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRetInfo> {
   return stream$
 }
 
-function batchOcrAndRetrieve(options: BatchOcrAndRetrieve): Observable<OcrRetInfo> {
+export function batchOcrAndRetrieve(options: BatchOcrAndRetrieve): Observable<OcrRetInfo> {
   const {
     zoneImgMap,
     bankConfig,
@@ -730,7 +730,7 @@ function ocrAndPickFieldFromZoneImg(
 }
 
 
-// parse width,height with globalScale
+/** parse width,height with globalScale */
 function parseVoucherConfigMapScale(configMap: VoucherConfigMap, globalScale: number): VoucherConfigMap {
   const ret = <VoucherConfigMap> new Map()
 
@@ -752,7 +752,7 @@ function parseVoucherConfigMapScale(configMap: VoucherConfigMap, globalScale: nu
   return ret
 }
 
-// parse width,height with globalScale
+/** parse width,height with globalScale */
 function parseOcrZoneScale(config: OcrZone, globalScale: number): OcrZone {
   const ret = <OcrZone> { ...config }
 
