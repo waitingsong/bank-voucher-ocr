@@ -167,12 +167,7 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
     mergeMap(({ bankName, pagePath }) => { // 切分页面为多张凭证
       if (isSingleVoucher) {
         return readImgInfo(pagePath).pipe(
-          map(imgInfo => {
-            return of(<PageToImgRet> {
-              bankName,
-              imgFile: imgInfo,
-            })
-          }),
+          map(imgInfo => of(<PageToImgRet> { bankName, imgInfo })),
         )
       }
       else {
@@ -180,7 +175,7 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
         return splitPageToImgs(pagePath, bankName, splitDir, voucherConfigMapNew)
       }
     }),
-    mergeMap(({ bankName, imgFile }) => { // 单张凭证处理
+    mergeMap(({ bankName, imgInfo }) => { // 单张凭证处理
       const ocrFields: OcrFields | void = getOcrFields(bankName, voucherConfigMapNew)
 
       if (!ocrFields) {
@@ -192,7 +187,7 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
         baseDir,
         debug: !! debug,
         defaultValue: '',
-        imgFile,
+        imgInfo,
         ocrFields,
         voucherConfigMap: voucherConfigMapNew,
       }
@@ -201,8 +196,8 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
       return <Observable<OcrRetInfo>> recognizeFields(opts).pipe(
         map(retInfo => {
           retInfo.set(FieldName.bank, bankName)
-          retInfo.set(OcrRetInfoKey.filename, imgFile.name.trim())
-          retInfo.set(OcrRetInfoKey.path, imgFile.path.trim())
+          retInfo.set(OcrRetInfoKey.filename, imgInfo.name.trim())
+          retInfo.set(OcrRetInfoKey.path, imgInfo.path.trim())
 
           return retInfo
         }),
@@ -315,8 +310,8 @@ export function splitPageToImgs(
   return splitPagetoItems(pagePath, targetDir, config).pipe(
     mergeMap(fileMap => {
       const ret$: Observable<PageToImgRet> = ofrom(fileMap.values()).pipe(
-        map(imgFile => {
-          return { bankName, imgFile }
+        map(imgInfo => {
+          return { bankName, imgInfo }
         }),
       )
       return ret$
@@ -332,7 +327,7 @@ export function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRet
     baseDir,
     debug,
     defaultValue,
-    imgFile,
+    imgInfo,
     ocrFields,
     voucherConfigMap,
   } = options
@@ -340,7 +335,7 @@ export function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRet
   const zoneTmpDir = join(
     baseDir,
     zoneTmpDirPrefix,
-    `${ basename(imgFile.path) }`,
+    `${ basename(imgInfo.path) }`,
   )
   const bankConfig = getOcrZoneOptsByBankName(bankName, voucherConfigMap)
 
@@ -350,7 +345,7 @@ export function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRet
 
   const stream$: Observable<OcrRetInfo> = defer(() => createDir(zoneTmpDir)).pipe(
     // 切分图片区域分别做ocr识别
-    mergeMap(() => cropImgAllZones(imgFile.path, zoneTmpDir, ocrFields, bankConfig.ocrZones)),
+    mergeMap(() => cropImgAllZones(imgInfo.path, zoneTmpDir, ocrFields, bankConfig.ocrZones)),
     concatMap(fileMap => {
       const opts: BatchOcrAndRetrieve = {
         bankConfig, ocrFields, defaultValue, debug,

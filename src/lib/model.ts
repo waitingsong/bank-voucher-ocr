@@ -185,7 +185,7 @@ export interface PageBankRet {
 
 export interface PageToImgRet {
   bankName: BankName
-  imgFile: ImgFileInfo
+  imgInfo: ImgFileInfo
 }
 
 export interface RecognizeFieldsOpts {
@@ -193,7 +193,7 @@ export interface RecognizeFieldsOpts {
   baseDir: string
   debug: boolean
   defaultValue: string
-  imgFile: ImgFileInfo
+  imgInfo: ImgFileInfo
   ocrFields: OcrFields
   voucherConfigMap: VoucherConfigMap
 }
