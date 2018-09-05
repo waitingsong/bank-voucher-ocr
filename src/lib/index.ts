@@ -567,7 +567,8 @@ function genFieldLangs(
 }
 
 
-function ocrAndPickFromZoneImg(
+/** 处理单张图片做识别提取 */
+export function ocrAndPickFromZoneImg(
   zoneImgRow: ZoneImgRow,
   config: VoucherConfig,
   debug: boolean = false,
