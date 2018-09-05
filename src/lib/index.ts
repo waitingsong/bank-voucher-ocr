@@ -122,6 +122,7 @@ export class Bvo {
 /** 处理单个文件图片 */
 export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetInfo> {
   const {
+    bankName: inputBankName,
     bankZone,
     baseTmpDir,
     concurrent,
@@ -153,7 +154,14 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
     skipImgDir: skipDir,
   }
 
-  const ret$ = recognizePageBank(bankOpts).pipe(
+  const bank$: Observable<PageBankRet> = !inputBankName
+    ? recognizePageBank(bankOpts)
+    : of(<PageBankRet> {
+      bankName: inputBankName,
+      pagePath: imgPath,
+    })
+
+  const ret$ = bank$.pipe(
     filter(({ bankName }) => !! bankName && bankName !== BankName.NA),
     mergeMap(({ bankName, pagePath }) => { // 切分页面为多张凭证
       !! debug && console.info('start split page')

@@ -4,6 +4,7 @@ export type EncodedText = string  // base64格式签名数据
 export type Filename = string
 
 export interface OcrOpts {
+  bankName?: BankName
   bankZone: OcrZone // for recognize bank from page
   baseTmpDir?: string
   concurrent?: number // os.cpus() if invalid
