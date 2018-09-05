@@ -345,6 +345,7 @@ export function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRet
   return stream$
 }
 
+/** 批量识别提取 */
 export function batchOcrAndRetrieve(options: BatchOcrAndRetrieve): Observable<OcrRetInfo> {
   const {
     zoneImgMap,
@@ -355,35 +356,6 @@ export function batchOcrAndRetrieve(options: BatchOcrAndRetrieve): Observable<Oc
   } = options
 
   const { bankName } = bankConfig
-
-  // const del$ = ofrom(zoneImgMap.entries()).pipe(
-  //   delay(15000),
-  //   mergeMap(([, imgInfo]) => {
-  //     return defer(async () => {
-  //       const img = imgInfo.path
-  //       const txt = img + '.txt'
-
-  //       if (await isFileExists(img)) {
-  //         await rimraf(img)
-  //       }
-  //       if (await isFileExists(txt)) {
-  //         await rimraf(txt)
-  //       }
-  //       return null
-  //     }).pipe(
-  //       delay(20000),
-  //       retry(2),
-  //       catchError(err => {
-  //         console.info('Delete zone file retry failed:', err)
-  //         return of(null)
-  //       }),
-  //     )
-  //   }),
-  //   catchError(() => {
-  //     return of(null)
-  //   }),
-  // )
-
   const process$ = ofrom(zoneImgMap.entries()).pipe(
     concatMap((zoneImgRow: ZoneImgRow) => {
       return ocrAndPickFromZoneImg(zoneImgRow, bankConfig, debug)
