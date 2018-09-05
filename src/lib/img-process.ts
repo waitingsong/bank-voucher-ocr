@@ -157,7 +157,7 @@ function parseSplitPage(options: SplitPageOpts): Observable<ImgFileInfo> {
   )
 }
 
-function readImgInfo(path: string): Observable<IInfoResult> {
+export function readImgInfo(path: string): Observable<IInfoResult> {
   return defer(() => getImgInfo(path))
 }
 

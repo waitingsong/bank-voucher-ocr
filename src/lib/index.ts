@@ -27,7 +27,7 @@ import {
 } from '../shared/index'
 
 import { initialBaseTmpDir, initialResizeImgDir, initialSplitTmpDir, zoneTmpDirPrefix } from './config'
-import { resizeAndSaveImg, splitPagetoItems } from './img-process'
+import { readImgInfo, resizeAndSaveImg, splitPagetoItems } from './img-process'
 import {
   BankName, BankRegexpOptsMap, BatchOcrAndRetrieve,
   FieldName,
@@ -128,6 +128,7 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
     concurrent,
     debug,
     defaultOcrLang,
+    isSingleVoucher,
     splitTmpDir,
     voucherConfigMap,
     globalScale,
@@ -164,8 +165,20 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
   const ret$ = bank$.pipe(
     filter(({ bankName }) => !! bankName && bankName !== BankName.NA),
     mergeMap(({ bankName, pagePath }) => { // 切分页面为多张凭证
-      !! debug && console.info('start split page')
-      return splitPageToImgs(pagePath, bankName, splitDir, voucherConfigMapNew)
+      if (isSingleVoucher) {
+        return readImgInfo(pagePath).pipe(
+          map(imgInfo => {
+            return of(<PageToImgRet> {
+              bankName,
+              imgFile: imgInfo,
+            })
+          }),
+        )
+      }
+      else {
+        !!debug && console.info('start split page')
+        return splitPageToImgs(pagePath, bankName, splitDir, voucherConfigMapNew)
+      }
     }),
     mergeMap(({ bankName, imgFile }) => { // 单张凭证处理
       const ocrFields: OcrFields | void = getOcrFields(bankName, voucherConfigMapNew)

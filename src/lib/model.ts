@@ -5,18 +5,32 @@ export type Filename = string
 
 export interface OcrOpts {
   bankName?: BankName
-  bankZone: OcrZone // for recognize bank from page
+  /** For recognize bank from page */
+  bankZone: OcrZone
   baseTmpDir?: string
-  concurrent?: number // os.cpus() if invalid
+  /** os.cpus() if undefined */
+  concurrent?: number
   debug?: boolean
-  defaultOcrLang: string  // default tesseract ocr lang, eg 'eng'
-  jpegQuality: number // result image quality (0, 100]
-  resizeImgDir?: string // store result images
-  scale: number // save resize result image  (0, 1]
-  skipImgDir?: string // folder store images not recogniezed bank
-  // default 1. if item of voucherConfigMap for 300api, but source image is 600dpi then set thie value to 600/300==2
+  /** Default tesseract ocr lang, eg 'eng' */
+  defaultOcrLang: string
+  /** Not need to split if true. Default:false */
+  isSingleVoucher?: boolean
+  /** Result image quality (0, 100] */
+  jpegQuality: number
+  /** Store result images */
+  resizeImgDir?: string
+  /** Save resize result image  (0, 1] */
+  scale: number
+  /** Folder store images not recogniezed bank */
+  skipImgDir?: string
+  /**
+   * if item of voucherConfigMap for 300api,
+   * but source image is 600dpi then set thie value to 600/300==2.
+   * Default:1
+   */
   globalScale: number
-  splitTmpDir?: string  // store temp split images to ocr
+  /** Store temp split images to ocr */
+  splitTmpDir?: string
   voucherConfigMap: VoucherConfigMap
 }
 
