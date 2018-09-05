@@ -166,9 +166,10 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
     filter(({ bankName }) => !! bankName && bankName !== BankName.NA),
     mergeMap(({ bankName, pagePath }) => { // 切分页面为多张凭证
       if (isSingleVoucher) {
-        return readImgInfo(pagePath).pipe(
-          map(imgInfo => of(<PageToImgRet> { bankName, imgInfo })),
+        const info$ = readImgInfo(pagePath).pipe(
+          map(imgInfo => <PageToImgRet> { bankName, imgInfo }),
         )
+        return info$
       }
       else {
         !!debug && console.info('start split page')
