@@ -89,11 +89,37 @@ export class Bvo {
   }
 
   run(imgPath: string): Observable<OcrRetInfo> {
-    return recognize(imgPath, this.options)
+    const {
+      debug,
+      jpegQuality,
+      scale,
+      resizeImgDir,
+      globalScale,
+    } = this.options
+
+    const resizeDir = resizeImgDir ? resizeImgDir : initialResizeImgDir
+    const scaleNew = scale / globalScale
+    const options = {
+      resizeDir,
+      scale: scaleNew,
+      jpegQuality,
+      debug: !!debug,
+    }
+
+    return recognize(imgPath, this.options).pipe(
+      mergeMap((retInfo: OcrRetInfo) => {
+        const opts: SaveImgAndPruneOpts = {
+          retInfo,
+          ...options,
+        }
+        return saveImgAndPrune(opts)
+      }),
+    )
   }
 }
 
 
+/** 处理单个文件图片 */
 export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetInfo> {
   const {
     bankZone,
@@ -101,10 +127,7 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
     concurrent,
     debug,
     defaultOcrLang,
-    jpegQuality,
-    scale,
     splitTmpDir,
-    resizeImgDir,
     voucherConfigMap,
     globalScale,
     skipImgDir,
@@ -112,19 +135,12 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
 
   const baseDir = baseTmpDir ? baseTmpDir : initialBaseTmpDir
   const splitDir = splitTmpDir ? splitTmpDir : initialSplitTmpDir
-  const resizeDir = resizeImgDir ? resizeImgDir : initialResizeImgDir
   const skipDir = skipImgDir ? join(skipImgDir, moment().format('YYYYMMDD')) : ''
   const cnumber = typeof concurrent === 'number' && concurrent > 0 ? concurrent : cpus().length
 
   // if config set for 300api, but source image from 600dpi, then set globalSale=600/300. default is 1
   const voucherConfigMapNew = parseVoucherConfigMapScale(voucherConfigMap, globalScale)
   const bankZoneNew = parseOcrZoneScale(bankZone, globalScale)
-  const scaleNew = scale / globalScale
-  // console.info(
-  //   `global scale: "${globalScale}" result: scale:"${scaleNew}"`,
-  //   '\nbankZoneNew:', bankZoneNew,
-  //   '\nvoucherConfigMap:', voucherConfigMap,
-  // )
 
   const bankRegexpOptsMap: BankRegexpOptsMap = getBankRegexpOpts(voucherConfigMapNew)
   const bankOpts = {
@@ -170,19 +186,7 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
           return retInfo
         }),
       )
-
     }, cnumber > 0 ? cnumber : 1),
-    mergeMap(retInfo => {
-      const opts = {
-        retInfo,
-        resizeDir,
-        scale: scaleNew,
-        jpegQuality,
-        debug: !!debug,
-      }
-
-      return saveImgAndPrune(opts)
-    }),
   )
 
   const imgExists$ = defer(() => isFileExists(imgPath)).pipe(
@@ -274,7 +278,7 @@ async function cpSkipImg(srcPath: string, skipImgDir: string | void) {
 }
 
 
-// 切分页面为多张凭证
+/** 切分页面为多张凭证 */
 export function splitPageToImgs(
   pagePath: string,
   bankName: BankName,
@@ -567,7 +571,7 @@ function genFieldLangs(
 }
 
 
-/** 处理单张图片做识别提取 */
+/** 处理单张zone图片做识别提取 */
 export function ocrAndPickFromZoneImg(
   zoneImgRow: ZoneImgRow,
   config: VoucherConfig,
