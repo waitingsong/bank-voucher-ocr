@@ -1,7 +1,7 @@
 import { crop, IInfoResult } from 'easyimage'
 import { defer, from as ofrom, of, Observable } from 'rxjs'
 import { catchError, last, map, mapTo, mergeMap, reduce } from 'rxjs/operators'
-import run from 'rxrunscript'
+import { run } from 'rxrunscript'
 
 import { join } from '../shared/index'
 
