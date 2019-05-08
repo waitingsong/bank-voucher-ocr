@@ -1,12 +1,10 @@
+import { readFileAsync } from '@waiting/shared-core'
 import { defer, Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
-
-import { readFileAsync } from '../shared/index'
 
 import {
   FieldName, OcrRetLangMap, OcrRetTxtMap, PreProcessBufferFn, RegexpArray, ZoneRegexpOpts,
 } from './model'
-
 
 
 export function retrieveKeyValuesFromOcrResult(

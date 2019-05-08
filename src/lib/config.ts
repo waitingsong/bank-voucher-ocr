@@ -1,4 +1,4 @@
-import { join, tmpdir } from '../shared/index'
+import { join, tmpdir } from '@waiting/shared-core'
 
 import {
   Actions,

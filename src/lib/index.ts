@@ -1,3 +1,13 @@
+import {
+  basename,
+  copyFileAsync,
+  createDirAsync,
+  isFileExists,
+  isPathAccessible,
+  join,
+  rimraf,
+  unlinkAsync,
+} from '@waiting/shared-core'
 import * as moment_ from 'moment'
 import { cpus } from 'os'
 import { defer, from as ofrom, of, Observable } from 'rxjs'
@@ -14,17 +24,6 @@ import {
   take,
   tap,
  } from 'rxjs/operators'
-
-import {
-  basename,
-  copyFileAsync,
-  createDir,
-  isFileExists,
-  isPathAcessible,
-  join,
-  rimraf,
-  unlinkAsync,
-} from '../shared/index'
 
 import { initialBaseTmpDir, initialResizeImgDir, initialSplitTmpDir, zoneTmpDirPrefix } from './config'
 import { readImgInfo, resizeAndSaveImg, splitPagetoItems } from './img-process'
@@ -65,17 +64,17 @@ export class Bvo {
     const splitDir = splitTmpDir ? splitTmpDir : initialSplitTmpDir
     const resizeDir = resizeImgDir ? resizeImgDir : initialResizeImgDir
 
-    defer(() => createDir(baseDir)).pipe(
+    defer(() => createDirAsync(baseDir)).pipe(
       catchError(err => {
         console.info(err)
         return of(null)
       }),
-      concatMap(() => createDir(splitDir)),
+      concatMap(() => createDirAsync(splitDir)),
       catchError(err => {
         console.info(err)
         return of(null)
       }),
-      concatMap(() => createDir(resizeDir)),
+      concatMap(() => createDirAsync(resizeDir)),
       catchError(err => {
         console.info(err)
         return of(null)
@@ -230,7 +229,7 @@ export function recognizePageBank(options: RecognizePageBankOpts): Observable<Pa
   const zoneTmpDir = join(baseDir, zoneTmpDirPrefix, `${ basename(path) }-${ Math.random().toString() }`)
   debug && console.info('recognize pageBank:', zoneTmpDir, path)
 
-  return defer(() => createDir(zoneTmpDir)).pipe(
+  return defer(() => createDirAsync(zoneTmpDir)).pipe(
     catchError(err => {
       console.info(err)
       return of(null)
@@ -288,8 +287,8 @@ async function cpSkipImg(srcPath: string, skipImgDir: string | void) {
   if (! skipImgDir) {
     return
   }
-  if (! await isPathAcessible(skipImgDir)) {
-    await createDir(skipImgDir)
+  if (! await isPathAccessible(skipImgDir)) {
+    await createDirAsync(skipImgDir)
   }
   copyFileAsync(srcPath, join(skipImgDir, basename(srcPath))).catch(console.error)
 }
@@ -344,7 +343,7 @@ export function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRet
     throw new Error(`get bankConfig empty with bankName: "${bankName}"`)
   }
 
-  const stream$: Observable<OcrRetInfo> = defer(() => createDir(zoneTmpDir)).pipe(
+  const stream$: Observable<OcrRetInfo> = defer(() => createDirAsync(zoneTmpDir)).pipe(
     // 切分图片区域分别做ocr识别
     mergeMap(() => cropImgAllZones(imgInfo.path, zoneTmpDir, ocrFields, bankConfig.ocrZones)),
     concatMap(fileMap => {

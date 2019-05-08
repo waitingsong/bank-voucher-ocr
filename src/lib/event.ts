@@ -1,12 +1,11 @@
+import {
+  isFileExists,
+} from '@waiting/shared-core'
 import { watch } from 'fs'
 import { Observable, Observer } from 'rxjs'
 import {
   throttleTime,
 } from 'rxjs/operators'
-
-import {
-  isFileExists,
-} from '../shared/index'
 
 import {
   Actions,

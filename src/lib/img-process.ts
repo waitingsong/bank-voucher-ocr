@@ -1,3 +1,7 @@
+import {
+  basename,
+  join,
+} from '@waiting/shared-core'
 import { crop, info as getImgInfo, resize, IInfoResult } from 'easyimage'
 import * as moment_ from 'moment'
 import { defer, of, range, Observable } from 'rxjs'
@@ -6,11 +10,6 @@ import {
   map,
   mergeMap,
 } from 'rxjs/operators'
-
-import {
-  basename,
-  join,
-} from '../shared/index'
 
 import {
   Filename, ImgFileInfo, SplitPageOpts, VoucherConfig, VoucherImgMap,
