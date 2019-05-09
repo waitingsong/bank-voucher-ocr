@@ -301,10 +301,11 @@ export function splitPageToImgs(
   targetDir: string,
   voucherConfigMap: VoucherConfigMap,
 ): Observable<PageToImgRet> {
+
   const config = voucherConfigMap.get(bankName)
 
   if (!config) {
-    throw new Error('bank config empty during split page to images')
+    console.info(`Empty bank config while invalid param bankName: "${bankName}". output original file without split`)
   }
 
   return splitPagetoItems(pagePath, targetDir, config).pipe(

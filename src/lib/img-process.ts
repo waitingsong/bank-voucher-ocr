@@ -22,48 +22,64 @@ const moment = moment_
 export function splitPagetoItems(
   srcPath: string,
   targetDir: string,
-  itemConfig: VoucherConfig,
+  itemConfig: VoucherConfig | void,
 ): Observable<Map<Filename, ImgFileInfo>> {
 
-  return readImgInfo(srcPath).pipe(
+  const info$: Observable<IInfoResult> = readImgInfo(srcPath)
+  const ret$ = info$.pipe(
     map(info => {
+      const fileMap = <VoucherImgMap> new Map()
+
+      if (! itemConfig) {
+        const imgFileInfo: ImgFileInfo = {
+          name: info.name,
+          path: info.path,
+          width: info.width,
+          height: info.height,
+          size: info.size,
+        }
+
+        fileMap.set(info.name, imgFileInfo)
+        return of(fileMap)
+      }
+
       const itemCount = calcItemsPerPage(info.height, itemConfig.height)
 
-      if (itemCount) {
-        return range(0, itemCount).pipe(
-          mergeMap(index => {
-            const splitPageOpts = {
-              index, // split index for position
-              itemConfig: { ...itemConfig },
-              srcPath, // source image
-              targetDir, // result image folder
-              pageHeight: info.height,
-            }
-
-            if (info.width < splitPageOpts.itemConfig.width) {
-              splitPageOpts.itemConfig.width = info.width
-            }
-
-            return parseSplitPage(splitPageOpts).pipe(
-              mergeMap(fileInfo => {
-                const fileMap = <VoucherImgMap> new Map()
-
-                if (fileInfo.name) {
-                  fileMap.set(fileInfo.name, fileInfo)
-                }
-                return of(fileMap)
-              }),
-            )
-          }),
-        )
+      if (! itemCount) {
+        return of(fileMap)
       }
-      else {
-        return of(<Map<Filename, ImgFileInfo>> new Map())
-      }
+
+      return range(0, itemCount).pipe(
+        mergeMap(index => {
+          const splitPageOpts = {
+            index, // split index for position
+            itemConfig: { ...itemConfig },
+            srcPath, // source image
+            targetDir, // result image folder
+            pageHeight: info.height,
+          }
+
+          if (info.width < splitPageOpts.itemConfig.width) {
+            splitPageOpts.itemConfig.width = info.width
+          }
+
+          return parseSplitPage(splitPageOpts).pipe(
+            mergeMap(fileInfo => {
+              const fileMap2 = <VoucherImgMap> new Map()
+
+              if (fileInfo.name) {
+                fileMap2.set(fileInfo.name, fileInfo)
+              }
+              return of(fileMap2)
+            }),
+          )
+        }),
+      )
     }),
     concatMap(retMap => retMap),
   )
 
+  return ret$
 }
 
 
@@ -104,7 +120,7 @@ export function resizeAndSaveImg(
 }
 
 
-// split one voucher item from a page and save it
+/** Split into single voucher item from a page and save it */
 function parseSplitPage(options: SplitPageOpts): Observable<ImgFileInfo> {
   const { index, srcPath, pageHeight } = options
   const { width, marginBottom } = options.itemConfig
