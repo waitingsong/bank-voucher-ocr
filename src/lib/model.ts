@@ -185,6 +185,14 @@ export interface PageBankRet {
 
 export interface PageToImgRet {
   bankName: BankName
+  /**
+   * name 格式 ${today}-${name}-${ Math.random() }-${index}.jpg
+   * eg. 20180705-A15307725600001-0.2834807279585585-0.jpg
+   * 20180705 处理日期
+   * A15307725600001 高扫生成序列号
+   * 0.2834807279585585 切分随机数
+   * 0 page切分结果序列号
+   */
   imgInfo: ImgFileInfo
 }
 

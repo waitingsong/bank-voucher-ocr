@@ -1,5 +1,6 @@
 import {
   basename,
+  copyFileAsync,
   join,
 } from '@waiting/shared-core'
 import { crop, info as getImgInfo, resize, IInfoResult } from 'easyimage'
@@ -31,21 +32,29 @@ export function splitPagetoItems(
       const fileMap = <VoucherImgMap> new Map()
 
       if (! itemConfig) {
-        const imgFileInfo: ImgFileInfo = {
-          name: info.name,
-          path: info.path,
-          width: info.width,
-          height: info.height,
-          size: info.size,
-        }
+        const longName = genSplitPagetoItemsName(info.name, 0)
+        const dst = join(targetDir, longName)
+        const cp$ = defer(() => copyFileAsync(info.path, dst)).pipe(
+          map(() => {
+            const imgFileInfo: ImgFileInfo = {
+              name: longName,
+              path: dst,
+              width: info.width,
+              height: info.height,
+              size: info.size,
+            }
 
-        fileMap.set(info.name, imgFileInfo)
-        return of(fileMap)
+            fileMap.set(imgFileInfo.name, imgFileInfo)
+            return fileMap
+          }),
+        )
+
+        return cp$
       }
 
       const itemCount = calcItemsPerPage(info.height, itemConfig.height)
 
-      if (! itemCount) {
+      if (itemCount < 1) {
         return of(fileMap)
       }
 
@@ -145,8 +154,8 @@ function parseSplitPage(options: SplitPageOpts): Observable<ImgFileInfo> {
   }
   const filename = basename(srcPath)
   const name = filename.split('.')[0]
-  const curDate = moment().format('YYYYMMDD')
-  const dst = join(options.targetDir, `${curDate}-${name}-${ Math.random() }-${index}.jpg`)
+  const longName = genSplitPagetoItemsName(name, index)
+  const dst = join(options.targetDir, longName)
   const opts = {
     dst,
     src: srcPath,
@@ -170,6 +179,20 @@ function parseSplitPage(options: SplitPageOpts): Observable<ImgFileInfo> {
       return of(ret)
     }),
   )
+}
+
+/**
+ * Generate name of result filename of splitPagetoItems()
+ * Return format:
+ * ${today}-${name}-${ Math.random() }-${index}.jpg
+ */
+function genSplitPagetoItemsName(name: string, index: number): Filename {
+  if (index < 0) {
+    throw new Error('Value of param index of genSplitPagetoItemsName(name, index) invalid: ' + index)
+  }
+  const curDate = moment().format('YYYYMMDD')
+  const ret = `${curDate}-${name}-${ Math.random() }-${index}.jpg`
+  return ret
 }
 
 export function readImgInfo(path: string): Observable<IInfoResult> {
