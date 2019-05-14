@@ -61,7 +61,7 @@ function retrieveValueByRegexp(
   const ret = regexMatch(txt, regexps, debug)
   if (debug) {
     console.info(
-      'retrieveValueByRegexp ----- text start: ---------------> \n',
+      `retrieveValueByRegexp ----- text start: ---------------> ${ new Date() } \n`,
       txt, '\n<--------------- text END ----------------\n\n',
       regexps, '>>>>>>>>matched value: ',
       ret, '\n',
@@ -110,7 +110,7 @@ function regexMatch(content: string, regexps: RegexpArray, debug: boolean = fals
     if (Array.isArray(arr) && arr.length) {
       if (regex.global && arr.length > 1) { // regexp with g and multi matched
         debug && console.info(
-          '----------multi matched regex: -------------->\n',
+          `----------multi matched regex: --------------> ${ new Date() }\n`,
           arr, '\n--- used regex ----: ', regex,
           '\n<-------------ignore matched result---------------\n\n',
         )
@@ -118,7 +118,7 @@ function regexMatch(content: string, regexps: RegexpArray, debug: boolean = fals
       }
       else {
         debug && console.info(
-          '----------matched regex: -------------->\n',
+          `----------matched regex: --------------> ${ new Date() }\n`,
           arr, '\n--- used regex ----: ', regex,
           '\n<----------------------------\n\n',
         )

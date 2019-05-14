@@ -172,7 +172,7 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
       }
       else {
         !!debug && console.info('start split page')
-        return splitPageToImgs(pagePath, bankName, splitDir, voucherConfigMapNew)
+        return splitPageToImgs(pagePath, bankName, splitDir, voucherConfigMapNew, debug)
       }
     }),
     mergeMap(({ bankName, imgInfo }) => { // 单张凭证处理
@@ -303,6 +303,7 @@ export function splitPageToImgs(
   bankName: BankName,
   targetDir: string,
   voucherConfigMap: VoucherConfigMap,
+  debug: boolean = false,
 ): Observable<PageToImgRet> {
 
   const config = voucherConfigMap.get(bankName)
@@ -311,7 +312,7 @@ export function splitPageToImgs(
     console.info(`Empty bank config while invalid param bankName: "${bankName}". output original file without split`)
   }
 
-  return splitPagetoItems(pagePath, targetDir, config).pipe(
+  return splitPagetoItems(pagePath, targetDir, config, debug).pipe(
     mergeMap(fileMap => {
       const ret$: Observable<PageToImgRet> = ofrom(fileMap.values()).pipe(
         map(imgInfo => {
@@ -536,6 +537,10 @@ function getOcrFields(bankName: BankName, configMap: VoucherConfigMap): OcrField
 
 function saveImgAndPrune(options: SaveImgAndPruneOpts): Observable<OcrRetInfo> {
   const { retInfo, resizeDir, debug, scale, jpegQuality } = options
+  debug && console.info(
+    `saveImgAndPrune():  ${new Date()}\n`,
+    { options },
+  )
 
   const filename = retInfo.get(OcrRetInfoKey.filename)
   const path = retInfo.get(OcrRetInfoKey.path)
@@ -572,7 +577,16 @@ function saveImgAndPrune(options: SaveImgAndPruneOpts): Observable<OcrRetInfo> {
       return retInfo
     }),
     tap(() => {
-      debug || unlinkAsync(path).catch(console.info)
+      if (debug) {
+        console.info('resizeAndSaveImg() succeeded with: ', new Date(), { path, targetPath, scale, jpegQuality })
+      }
+      else {
+        unlinkAsync(path).catch(console.info)
+      }
+    }),
+    catchError((err: Error) => {
+      console.error('resizeAndSaveImg()', new Date(), err)
+      throw err
     }),
   )
 

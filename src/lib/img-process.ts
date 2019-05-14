@@ -10,6 +10,7 @@ import {
   concatMap,
   map,
   mergeMap,
+  tap,
 } from 'rxjs/operators'
 
 import {
@@ -24,7 +25,13 @@ export function splitPagetoItems(
   srcPath: string,
   targetDir: string,
   itemConfig: VoucherConfig | void,
+  debug: boolean = false,
 ): Observable<Map<Filename, ImgFileInfo>> {
+
+  debug && console.info(
+    `splitPagetoItems():  ${new Date()}\n`,
+    { srcPath, targetDir },
+  )
 
   const info$: Observable<IInfoResult> = readImgInfo(srcPath)
   const ret$ = info$.pipe(
@@ -46,6 +53,12 @@ export function splitPagetoItems(
 
             fileMap.set(imgFileInfo.name, imgFileInfo)
             return fileMap
+          }),
+          tap(retMap => {
+            debug && console.info(
+              `splitPagetoItems(): result during !itemConfig ${new Date()}\n`,
+              { srcPath, targetDir, fileMap: retMap },
+            )
           }),
         )
 
