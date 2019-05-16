@@ -39,7 +39,7 @@ export function splitPagetoItems(
       const fileMap = <VoucherImgMap> new Map()
 
       if (! itemConfig) {
-        const longName = genSplitPagetoItemsName(info.name, 0)
+        const longName = genSplitPagetoItemsName(basename(info.name), 0)
         const dst = join(targetDir, longName)
         const cp$ = defer(() => copyFileAsync(info.path, dst)).pipe(
           map(() => {
@@ -196,15 +196,17 @@ function parseSplitPage(options: SplitPageOpts): Observable<ImgFileInfo> {
 
 /**
  * Generate name of result filename of splitPagetoItems()
- * Return format:
+ *
+ * @param baseName without file ext
+ * Return jpg format:
  * ${today}-${name}-${ Math.random() }-${index}.jpg
  */
-function genSplitPagetoItemsName(name: string, index: number): Filename {
+function genSplitPagetoItemsName(baseName: string, index: number): Filename {
   if (index < 0) {
     throw new Error('Value of param index of genSplitPagetoItemsName(name, index) invalid: ' + index)
   }
   const curDate = moment().format('YYYYMMDD')
-  const ret = `${curDate}-${name}-${ Math.random() }-${index}.jpg`
+  const ret = `${curDate}-${baseName}-${ Math.random() }-${index}.jpg`
   return ret
 }
 
