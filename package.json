@@ -53,7 +53,7 @@
     "easyimage": "^3.1.0",
     "moment": "^2.22.2",
     "rxjs": "^6.5.2",
-    "rxrunscript": "^2.0.0"
+    "rxrunscript": "^5.2.0"
   },
   "devDependencies": {
     "@types/mocha": "*",
