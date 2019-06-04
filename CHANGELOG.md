@@ -1,6 +1,20 @@
-# Change Log
+# Changelog
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [2.3.0](https://github.com/waitingsong/bank-voucher-ocr/compare/v2.2.3...v2.3.0) (2019-06-04)
+
+
+### Bug Fixes
+
+* **types:** recognizePageBank() ([3c26760](https://github.com/waitingsong/bank-voucher-ocr/commit/3c26760))
+
+
+### Features
+
+* recognizePageBank() ([e31cf79](https://github.com/waitingsong/bank-voucher-ocr/commit/e31cf79))
+
+
 
 ## [2.2.3](https://github.com/waitingsong/bank-voucher-ocr/compare/v2.2.2...v2.2.3) (2019-05-16)
 
