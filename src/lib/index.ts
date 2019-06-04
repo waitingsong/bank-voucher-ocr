@@ -243,7 +243,7 @@ export function recognizePageBank(options: RecognizePageBankOpts): Observable<Pa
     }),
     concatMap(zoneImgPath => {
       // 批量提取参数值
-      return ofrom(bankRegexpOptsMap.entries()).pipe(
+      const values$: Observable<PageBankRet> = ofrom(bankRegexpOptsMap.entries()).pipe(
         concatMap(([bankName, regexps]) => {
           return retrieveKeyValuesFromOcrResult(
             zoneImgPath + '.txt',
@@ -262,14 +262,15 @@ export function recognizePageBank(options: RecognizePageBankOpts): Observable<Pa
             pagePath: path,
           }
         }),
-        defaultIfEmpty({
+        defaultIfEmpty(<PageBankRet> {
           bankName: BankName.NA,
           pagePath: '',
         }),
       )
 
+      return values$
     }),
-    tap(ret => {
+    tap((ret: PageBankRet) => {
       const { bankName, pagePath } = ret
       if (bankName === BankName.NA || ! pagePath) {
         // throw new Error('recognize bank of page fail. no matached regexp')
