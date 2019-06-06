@@ -105,6 +105,8 @@ export class Bvo {
       debug: !!debug,
     }
 
+    !!debug && console.info(`\nrun() imgPath: "${imgPath}" ` + new Date().getTime())
+
     return recognize(imgPath, this.options).pipe(
       mergeMap((retInfo: OcrRetInfo) => {
         const opts: SaveImgAndPruneOpts = {
@@ -248,7 +250,12 @@ export function recognizePageBank(options: RecognizePageBankOpts): Observable<Pa
           return retrieveKeyValuesFromOcrResult(
             zoneImgPath + '.txt',
             regexps,
-            buf => buf.toString().replace(/(?<=\S)[. ]{1,2}(?=\S)/g, '').replace(/\n{2,}/g, '\n'),
+            buf => {
+              return buf.toString()
+                .replace(/(?<=\S)[. ]{1,2}(?=\S)/g, '')
+                .replace(/\n\s+\n/g, '\n')
+                .replace(/\n{2,}/g, '\n')
+            },
             debug,
           ).pipe(
             map(val => ({ bankName, value: val })),
