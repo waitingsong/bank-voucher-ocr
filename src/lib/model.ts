@@ -50,11 +50,18 @@ export interface BVOEvent {
 
 export const enum BankName {
   NA = 'n/a',
-  abc = 'abc',  // 农行
-  boc = 'boc',  // 中行
-  bocm = 'bocm',  // 交行
-  ccb = 'ccb',  // 建行
-  icbc = 'icbc',  // 工行
+  /** 农行 */
+  abc = 'abc',
+  /** 中行 */
+  boc = 'boc',
+  /** 交行 */
+  bocm = 'bocm',
+  /** 建行 */
+  ccb = 'ccb',
+  /** 工行 */
+  icbc = 'icbc',
+  /** 自贡银行 */
+  zigong = 'zigong',
 }
 
 // names of crop zone for ocr
