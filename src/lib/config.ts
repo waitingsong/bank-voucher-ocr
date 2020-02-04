@@ -11,6 +11,8 @@ import {
 export const initialBaseTmpDir = join(tmpdir(), 'voucher-ocr')
 export const initialResizeImgDir = join(initialBaseTmpDir, 'resize')   // store result images
 export const initialSplitTmpDir = join(initialBaseTmpDir, 'split') // store temp split images to ocr
+/** src dir for parsed image with margin */
+export const srcTmpDirPrefix = 'src'
 export const zoneTmpDirPrefix = 'zone'
 
 export const initialEvent: BVOEvent = {

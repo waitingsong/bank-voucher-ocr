@@ -14,12 +14,67 @@ import {
 } from 'rxjs/operators'
 
 import {
-  Filename, ImgFileInfo, SplitPageOpts, VoucherConfig, VoucherImgMap,
+  Filename, ImgFileInfo, ParsePageMarginOpts, SplitPageOpts, VoucherConfig, VoucherImgMap,
 } from './model'
 
 
 const moment = moment_
 
+
+export function parsePageMargin(
+  options: ParsePageMarginOpts,
+  debug: boolean = false,
+): Observable<ImgFileInfo> {
+
+  debug && console.info(
+    `parsePageMargin():  ${new Date()}\n`,
+    { options },
+  )
+
+  const {
+    srcPath,
+    targetDir,
+    pageMarginTop,
+    pageMarginLeft,
+    pageMarginRight,
+    pageMarginBottom,
+  } = options
+
+  const info$: Observable<IInfoResult> = readImgInfo(srcPath)
+  const ret$ = info$.pipe(
+    mergeMap((info: IInfoResult) => {
+      const x = pageMarginLeft
+      const y = pageMarginTop
+      const width = info.width - x - pageMarginRight
+      const height = info.height - y - pageMarginBottom
+
+      const filename = basename(srcPath)
+      const dst = join(targetDir, filename)
+      const opts = {
+        dst,
+        src: srcPath,
+        quality: 99,
+        cropWidth: width,
+        cropHeight: height,
+        x,
+        y,
+      }
+      return crop(opts)
+    }),
+    map((info: IInfoResult) => {
+      const ret: ImgFileInfo = {
+        name: info.name,
+        path: info.path,
+        width: info.width,
+        height: info.height,
+        size: info.size,  // maybe float value and not accurate...
+      }
+      return ret
+    }),
+  )
+  return ret$
+
+}
 
 export function splitPagetoItems(
   srcPath: string,
@@ -35,10 +90,10 @@ export function splitPagetoItems(
 
   const info$: Observable<IInfoResult> = readImgInfo(srcPath)
   const ret$ = info$.pipe(
-    map(info => {
+    map((info: IInfoResult) => {
       const fileMap = <VoucherImgMap> new Map()
 
-      if (! itemConfig) {
+      if (!itemConfig) {
         const longName = genSplitPagetoItemsName(basename(info.name), 0)
         const dst = join(targetDir, longName)
         const cp$ = defer(() => copyFileAsync(info.path, dst)).pipe(
@@ -206,7 +261,7 @@ function genSplitPagetoItemsName(baseName: string, index: number): Filename {
     throw new Error('Value of param index of genSplitPagetoItemsName(name, index) invalid: ' + index)
   }
   const curDate = moment().format('YYYYMMDD')
-  const ret = `${curDate}-${baseName}-${ Math.random() }-${index}.jpg`
+  const ret = `${curDate}-${baseName}-${Math.random()}-${index}.jpg`
   return ret
 }
 

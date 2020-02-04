@@ -32,6 +32,10 @@ export interface OcrOpts {
   /** Store temp split images to ocr */
   splitTmpDir?: string
   voucherConfigMap: VoucherConfigMap
+  pageMarginTop: number
+  pageMarginLeft: number
+  pageMarginRight: number
+  pageMarginBottom: number
 }
 
 export const enum Actions {
@@ -158,6 +162,16 @@ export interface ImgInfo {
   path: string
   durl: string  // DataUrl
 }
+
+export interface ParsePageMarginOpts {
+  srcPath: string,
+  targetDir: string,
+  pageMarginTop: number
+  pageMarginLeft: number
+  pageMarginRight: number
+  pageMarginBottom: number
+}
+
 
 export interface SplitPageOpts {
   index: number // split index for position

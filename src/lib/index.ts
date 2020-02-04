@@ -25,15 +25,21 @@ import {
   tap,
  } from 'rxjs/operators'
 
-import { initialBaseTmpDir, initialResizeImgDir, initialSplitTmpDir, zoneTmpDirPrefix } from './config'
-import { readImgInfo, resizeAndSaveImg, splitPagetoItems } from './img-process'
+import {
+  initialBaseTmpDir,
+  initialResizeImgDir,
+  initialSplitTmpDir,
+  srcTmpDirPrefix,
+  zoneTmpDirPrefix,
+ } from './config'
+import { parsePageMargin, readImgInfo, resizeAndSaveImg, splitPagetoItems } from './img-process'
 import {
   BankName, BankRegexpOptsMap, BatchOcrAndRetrieve,
   FieldName,
-  OcrFields, OcrFieldLangs, OcrLangs, OcrOpts, OcrRetInfo, OcrRetInfoKey, OcrRetTxtMap, OcrZone, OcrZoneRet,
-  PageBankRet, PageToImgRet,
-  RecognizeFieldsOpts, RecognizePageBankOpts, RegexpArray,
-  SaveImgAndPruneOpts, VoucherConfig, VoucherConfigMap, ZoneImgRow, ZoneRegexpOpts,
+  ImgFileInfo, OcrFields, OcrFieldLangs, OcrLangs, OcrOpts, OcrRetInfo, OcrRetInfoKey, OcrRetTxtMap, OcrZone,
+  OcrZoneRet, PageBankRet,
+  PageToImgRet, ParsePageMarginOpts, RecognizeFieldsOpts,
+  RecognizePageBankOpts, RegexpArray, SaveImgAndPruneOpts, VoucherConfig, VoucherConfigMap, ZoneImgRow, ZoneRegexpOpts,
 } from './model'
 import { cropImgAllZones, cropImgZone, getOcrZoneOptsByBankName, runOcr } from './ocr-process'
 import {
@@ -57,6 +63,19 @@ export class Bvo {
       : globalScale
 
     this.options.debug = !! this.options.debug
+
+    this.options.pageMarginTop = this.options.pageMarginTop && this.options.pageMarginTop >= 0
+      ? +this.options.pageMarginTop
+      : 0
+    this.options.pageMarginLeft = this.options.pageMarginLeft && this.options.pageMarginLeft >= 0
+      ? +this.options.pageMarginLeft
+      : 0
+    this.options.pageMarginRight = this.options.pageMarginRight && this.options.pageMarginRight >= 0
+      ? +this.options.pageMarginRight
+      : 0
+    this.options.pageMarginBottom = this.options.pageMarginBottom && this.options.pageMarginBottom >= 0
+      ? +this.options.pageMarginBottom
+      : 0
 
     const { baseTmpDir, splitTmpDir, resizeImgDir } = options
 
@@ -89,11 +108,16 @@ export class Bvo {
 
   run(imgPath: string): Observable<OcrRetInfo> {
     const {
+      baseTmpDir,
       debug,
       jpegQuality,
       scale,
       resizeImgDir,
       globalScale,
+      pageMarginTop,
+      pageMarginLeft,
+      pageMarginRight,
+      pageMarginBottom,
     } = this.options
 
     const resizeDir = resizeImgDir ? resizeImgDir : initialResizeImgDir
@@ -107,15 +131,33 @@ export class Bvo {
 
     !!debug && console.info(`\nrun() imgPath: "${imgPath}" ` + new Date().getTime())
 
-    return recognize(imgPath, this.options).pipe(
-      mergeMap((retInfo: OcrRetInfo) => {
-        const opts: SaveImgAndPruneOpts = {
-          retInfo,
-          ...options,
-        }
-        return saveImgAndPrune(opts)
+    const baseDir = baseTmpDir ? baseTmpDir : initialBaseTmpDir
+    const srcTmpDir = join(baseDir, srcTmpDirPrefix)
+    const marginOpts: ParsePageMarginOpts = {
+      srcPath: imgPath,
+      targetDir: srcTmpDir,
+      pageMarginTop: pageMarginTop > 0 ? pageMarginTop : 0,
+      pageMarginLeft: pageMarginLeft > 0 ? pageMarginLeft : 0,
+      pageMarginRight: pageMarginRight > 0 ? pageMarginRight : 0,
+      pageMarginBottom: pageMarginBottom > 0 ? pageMarginBottom : 0,
+    }
+
+    const src$ = parsePageMargin(marginOpts, debug)
+    const ret$ = src$.pipe(
+      mergeMap((info: ImgFileInfo) => {
+        return recognize(info.path, this.options).pipe(
+          mergeMap((retInfo: OcrRetInfo) => {
+            const opts: SaveImgAndPruneOpts = {
+              retInfo,
+              ...options,
+            }
+            return saveImgAndPrune(opts)
+          }),
+        )
       }),
     )
+
+    return ret$
   }
 }
 
