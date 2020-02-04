@@ -1,19 +1,17 @@
-import {
-  isFileExists,
-} from '@waiting/shared-core'
 import { watch } from 'fs'
-import { Observable, Observer } from 'rxjs'
-import {
-  throttleTime,
-} from 'rxjs/operators'
 
 import {
   Actions,
   BVOEvent,
 } from './model'
 
+import { isFileExists } from '@waiting/shared-core'
+import { Observable, Observer } from 'rxjs'
+import { throttleTime } from 'rxjs/operators'
 
-export function watchFileChange(path: string, period: number = 3000): Observable<BVOEvent> {
+
+
+export function watchFileChange(path: string, period = 3000): Observable<BVOEvent> {
   if (period <= 0) {
     period = 3000
   }
@@ -30,7 +28,7 @@ export function watchFileChange(path: string, period: number = 3000): Observable
       })
     })
 
-    return () => watcher.close()  // for unsubscribe()
+    return () => watcher.close() // for unsubscribe()
   })
 
   return file$.pipe(

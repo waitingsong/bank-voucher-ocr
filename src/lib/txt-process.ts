@@ -1,17 +1,18 @@
+import {
+  FieldName, OcrRetLangMap, OcrRetTxtMap, PreProcessBufferFn, RegexpArray, ZoneRegexpOpts,
+} from './model'
+
 import { readFileAsync } from '@waiting/shared-core'
 import { defer, Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
 
-import {
-  FieldName, OcrRetLangMap, OcrRetTxtMap, PreProcessBufferFn, RegexpArray, ZoneRegexpOpts,
-} from './model'
 
 
 export function retrieveKeyValuesFromOcrResult(
   path: string, // ocr result txt file path
   matchRules: RegexpArray,
   preProcssBufferFn: PreProcessBufferFn | null,
-  debug: boolean = false,
+  debug = false,
 ): Observable<string | void> {
 
   if (! matchRules) {
@@ -25,7 +26,7 @@ export function retrieveKeyValuesFromOcrResult(
         ? preProcssBufferFn(buf)
         : buf.toString('utf8')
 
-      return retrieveValueByRegexp(txt, <RegexpArray> regexp, debug)
+      return retrieveValueByRegexp(txt, regexp, debug)
     }),
     // map(val => typeof val === 'string' && val.length > 0 ? val : ''),
   )
@@ -55,16 +56,19 @@ export function getRegexpOptsByName(
 function retrieveValueByRegexp(
   txt: string,
   regexps: RegexpArray,
-  debug: boolean = false,
+  debug = false,
 ): string | void {
 
   const ret = regexMatch(txt, regexps, debug)
   if (debug) {
     console.info(
-      `retrieveValueByRegexp ----- text start: ---------------> ${ new Date() } \n`,
-      txt, '\n<------ text END ---- regexp rules ------> \n\n',
-      regexps, '>>>>>>>>matched value: ',
-      ret, '\n',
+      `retrieveValueByRegexp ----- text start: ---------------> ${new Date()} \n`,
+      txt,
+      '\n<------ text END ---- regexp rules ------> \n\n',
+      regexps,
+      '>>>>>>>>matched value: ',
+      ret,
+      '\n',
     )
   }
   return ret
@@ -100,7 +104,7 @@ export function prepareContent(buf: Buffer): string {
  * regex match with order of regexs item
  * allow only one matched result
  */
-function regexMatch(content: string, regexps: RegexpArray, debug: boolean = false): string | void {
+function regexMatch(content: string, regexps: RegexpArray, debug = false): string | void {
   if (! content) {
     return
   }
@@ -110,16 +114,20 @@ function regexMatch(content: string, regexps: RegexpArray, debug: boolean = fals
     if (Array.isArray(arr) && arr.length) {
       if (regex.global && arr.length > 1) { // regexp with g and multi matched
         debug && console.info(
-          `regexMatch ----------multi match result: --------> ${ new Date() }\n`,
-          arr, '\n--- used regex ----: ', regex,
+          `regexMatch ----------multi match result: --------> ${new Date()}\n`,
+          arr,
+          '\n--- used regex ----: ',
+          regex,
           '<----ignored matched result----\n\n\n',
         )
         return ''
       }
       else {
         debug && console.info(
-          `regexMatch ----------match result: --------> ${ new Date() }\n`,
-          arr, '\n--- used regex ----: ', regex,
+          `regexMatch ----------match result: --------> ${new Date()}\n`,
+          arr,
+          '\n--- used regex ----: ',
+          regex,
           '\n\n\n',
         )
         return arr[0]

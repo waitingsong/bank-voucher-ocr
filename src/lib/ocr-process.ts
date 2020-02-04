@@ -1,13 +1,16 @@
-import { join } from '@waiting/shared-core'
-import { crop, IInfoResult } from 'easyimage'
-import { defer, from as ofrom, of, Observable } from 'rxjs'
-import { catchError, last, map, mapTo, mergeMap, reduce } from 'rxjs/operators'
-import { run } from 'rxrunscript'
-
 import {
   BankName, FieldName, ImgFileInfo, OcrFields, OcrZone,
   VoucherConfig, VoucherConfigMap, ZoneImgMap,
 } from './model'
+
+import { join } from '@waiting/shared-core'
+import { crop, IInfoResult } from 'easyimage'
+import { defer, from as ofrom, of, Observable } from 'rxjs'
+import {
+  catchError, last, map, mapTo, mergeMap, reduce,
+} from 'rxjs/operators'
+import { run } from 'rxrunscript'
+
 
 
 export function getOcrZoneOptsByBankName(bankName: BankName, configMap: VoucherConfigMap): VoucherConfig | void {
@@ -20,11 +23,11 @@ export function cropImgAllZones(
   srcPath: string,
   zoneTmpDir: string,
   ocrFields: OcrFields,
-  ocrZoneOptsArr: ReadonlyArray<OcrZone>,
+  ocrZoneOptsArr: readonly OcrZone[],
 ): Observable<ZoneImgMap> {
 
   const flds = <OcrZone[]> []
-  const srcFldSet = <Set<FieldName>> new Set()
+  const srcFldSet = new Set()
 
   for (const srcFld of Object.values(ocrFields)) {
     if (! srcFld || srcFldSet.has(srcFld)) {
@@ -41,9 +44,9 @@ export function cropImgAllZones(
   }
 
   return ofrom(flds).pipe(
-    mergeMap(ocrZoneOpts => {
+    mergeMap((ocrZoneOpts) => {
       return cropImgZone(srcPath, zoneTmpDir, ocrZoneOpts).pipe(
-        map(img => {
+        map((img) => {
           return <[FieldName, ImgFileInfo]> [ocrZoneOpts.zoneName, img]
         }),
       )
@@ -58,7 +61,9 @@ export function cropImgAllZones(
 
 
 export function cropImgZone(srcPath: string, targetDir: string, ocrZoneOpts: OcrZone): Observable<ImgFileInfo> {
-  const { zoneName, width, height, offsetX, offsetY } = ocrZoneOpts
+  const {
+    zoneName, width, height, offsetX, offsetY,
+  } = ocrZoneOpts
 
   const dst = join(targetDir, `${zoneName}-${Math.random()}.png`)
   const opts = {
@@ -79,7 +84,7 @@ export function cropImgZone(srcPath: string, targetDir: string, ocrZoneOpts: Ocr
         path: info.path,
         width: info.width,
         height: info.height,
-        size: info.size,  // maybe float value and not accurate...
+        size: info.size, // maybe float value and not accurate...
       }
       return ret
     }),

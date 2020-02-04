@@ -1,29 +1,5 @@
-import {
-  basename,
-  copyFileAsync,
-  createDirAsync,
-  isFileExists,
-  isPathAccessible,
-  join,
-  rimraf,
-  unlinkAsync,
-} from '@waiting/shared-core'
-import * as moment_ from 'moment'
 import { cpus } from 'os'
-import { defer, from as ofrom, of, Observable } from 'rxjs'
-import {
-  catchError,
-  concatMap,
-  defaultIfEmpty,
-  filter,
-  map,
-  mapTo,
-  mergeMap,
-  reduce,
-  skipWhile,
-  take,
-  tap,
- } from 'rxjs/operators'
+
 
 import {
   initialBaseTmpDir,
@@ -31,7 +7,7 @@ import {
   initialSplitTmpDir,
   srcTmpDirPrefix,
   zoneTmpDirPrefix,
- } from './config'
+} from './config'
 import { parsePageMargin, readImgInfo, resizeAndSaveImg, splitPagetoItems } from './img-process'
 import {
   BankName, BankRegexpOptsMap, BatchOcrAndRetrieve,
@@ -49,6 +25,32 @@ import {
   retrieveKeyValuesFromOcrResult,
   updateOcrRetTxtMap,
 } from './txt-process'
+
+import {
+  catchError,
+  concatMap,
+  defaultIfEmpty,
+  filter,
+  map,
+  mapTo,
+  mergeMap,
+  reduce,
+  skipWhile,
+  take,
+  tap,
+} from 'rxjs/operators'
+import { defer, from as ofrom, of, Observable } from 'rxjs'
+import * as moment_ from 'moment'
+import {
+  basename,
+  copyFileAsync,
+  createDirAsync,
+  isFileExists,
+  isPathAccessible,
+  join,
+  rimraf,
+  unlinkAsync,
+} from '@waiting/shared-core'
 
 
 const moment = moment_
@@ -84,17 +86,17 @@ export class Bvo {
     const resizeDir = resizeImgDir ? resizeImgDir : initialResizeImgDir
 
     defer(() => createDirAsync(baseDir)).pipe(
-      catchError(err => {
+      catchError((err) => {
         console.info(err)
         return of(null)
       }),
       concatMap(() => createDirAsync(splitDir)),
-      catchError(err => {
+      catchError((err) => {
         console.info(err)
         return of(null)
       }),
       concatMap(() => createDirAsync(resizeDir)),
-      catchError(err => {
+      catchError((err) => {
         console.info(err)
         return of(null)
       }),
@@ -126,10 +128,10 @@ export class Bvo {
       resizeDir,
       scale: scaleNew,
       jpegQuality,
-      debug: !!debug,
+      debug: !! debug,
     }
 
-    !!debug && console.info(`\nrun() imgPath: "${imgPath}" ` + new Date().getTime())
+    !! debug && console.info(`\nrun() imgPath: "${imgPath}" ` + new Date().getTime())
 
     const baseDir = baseTmpDir ? baseTmpDir : initialBaseTmpDir
     const srcTmpDir = join(baseDir, srcTmpDirPrefix)
@@ -159,6 +161,7 @@ export class Bvo {
 
     return ret$
   }
+
 }
 
 
@@ -198,7 +201,7 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
     skipImgDir: skipDir,
   }
 
-  const bank$: Observable<PageBankRet> = !inputBankName
+  const bank$: Observable<PageBankRet> = ! inputBankName
     ? recognizePageBank(bankOpts)
     : of(<PageBankRet> {
       bankName: inputBankName,
@@ -215,14 +218,14 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
         return info$
       }
       else {
-        !!debug && console.info('start split page')
+        !! debug && console.info('start split page')
         return splitPageToImgs(pagePath, bankName, splitDir, voucherConfigMapNew, debug)
       }
     }),
     mergeMap(({ bankName, imgInfo }) => { // 单张凭证处理
       const ocrFields: OcrFields | void = getOcrFields(bankName, voucherConfigMapNew)
 
-      if (!ocrFields) {
+      if (! ocrFields) {
         throw new Error(`ocrFields not defined with bankName: "${bankName}"`)
       }
 
@@ -237,8 +240,8 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
       }
 
       !! debug && console.info('recognize item')
-      return <Observable<OcrRetInfo>> recognizeFields(opts).pipe(
-        map(retInfo => {
+      return recognizeFields(opts).pipe(
+        map((retInfo) => {
           retInfo.set(FieldName.bank, bankName)
           retInfo.set(OcrRetInfoKey.filename, imgInfo.name.trim())
           retInfo.set(OcrRetInfoKey.path, imgInfo.path.trim())
@@ -270,29 +273,29 @@ export function recognizePageBank(options: RecognizePageBankOpts): Observable<Pa
     skipImgDir, // with YYYYMMDD subfolder
   } = options
 
-  const zoneTmpDir = join(baseDir, zoneTmpDirPrefix, `${ basename(path) }-${ Math.random().toString() }`)
+  const zoneTmpDir = join(baseDir, zoneTmpDirPrefix, `${basename(path)}-${Math.random().toString()}`)
   debug && console.info('recognize pageBank:', zoneTmpDir, path)
 
   return defer(() => createDirAsync(zoneTmpDir)).pipe(
-    catchError(err => {
+    catchError((err) => {
       console.info(err)
       return of(null)
     }),
     mergeMap(() => cropImgZone(join(path), zoneTmpDir, bankZone)), // 切分page title区域
-    concatMap(zoneInfo => { // ocr识别银行名称区域
+    concatMap((zoneInfo) => { // ocr识别银行名称区域
       return runOcr(zoneInfo.path, lang, zoneInfo.path).pipe(
         mapTo(zoneInfo.path),
         // tap(() => console.info('ocr completed')),
       )
     }),
-    concatMap(zoneImgPath => {
+    concatMap((zoneImgPath) => {
       // 批量提取参数值
       const values$: Observable<PageBankRet> = ofrom(bankRegexpOptsMap.entries()).pipe(
         concatMap(([bankName, regexps]) => {
           return retrieveKeyValuesFromOcrResult(
             zoneImgPath + '.txt',
             regexps,
-            buf => {
+            (buf) => {
               return buf.toString()
                 .replace(/(?<=\S)[. ]{1,2}(?=\S)/g, '')
                 .replace(/\n\s+\n/g, '\n')
@@ -303,7 +306,7 @@ export function recognizePageBank(options: RecognizePageBankOpts): Observable<Pa
             map(val => ({ bankName, value: val })),
           )
         }),
-        skipWhile(({ value }) => typeof value === 'undefined' || (typeof value === 'string' && !value.length)),
+        skipWhile(({ value }) => typeof value === 'undefined' || typeof value === 'string' && ! value.length),
         take(1),
         map(({ bankName }) => {
           return <PageBankRet> {
@@ -353,19 +356,19 @@ export function splitPageToImgs(
   bankName: BankName,
   targetDir: string,
   voucherConfigMap: VoucherConfigMap,
-  debug: boolean = false,
+  debug = false,
 ): Observable<PageToImgRet> {
 
   const config = voucherConfigMap.get(bankName)
 
-  if (!config) {
+  if (! config) {
     console.info(`Empty bank config while invalid param bankName: "${bankName}". output original file without split`)
   }
 
   return splitPagetoItems(pagePath, targetDir, config, debug).pipe(
-    mergeMap(fileMap => {
+    mergeMap((fileMap) => {
       const ret$: Observable<PageToImgRet> = ofrom(fileMap.values()).pipe(
-        map(imgInfo => {
+        map((imgInfo) => {
           return { bankName, imgInfo }
         }),
       )
@@ -390,7 +393,7 @@ export function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRet
   const zoneTmpDir = join(
     baseDir,
     zoneTmpDirPrefix,
-    `${ basename(imgInfo.path) }`,
+    `${basename(imgInfo.path)}`,
   )
   const bankConfig = getOcrZoneOptsByBankName(bankName, voucherConfigMap)
 
@@ -401,16 +404,19 @@ export function recognizeFields(options: RecognizeFieldsOpts): Observable<OcrRet
   const stream$: Observable<OcrRetInfo> = defer(() => createDirAsync(zoneTmpDir)).pipe(
     // 切分图片区域分别做ocr识别
     mergeMap(() => cropImgAllZones(imgInfo.path, zoneTmpDir, ocrFields, bankConfig.ocrZones)),
-    concatMap(fileMap => {
+    concatMap((fileMap) => {
       const opts: BatchOcrAndRetrieve = {
-        bankConfig, ocrFields, defaultValue, debug,
+        bankConfig,
+        ocrFields,
+        defaultValue,
+        debug,
         zoneImgMap: fileMap,
       }
       return batchOcrAndRetrieve(opts)
     }),
     tap(() => {
       if (! debug) {
-        setTimeout(dir => {
+        setTimeout((dir) => {
           rimraf(dir).catch(console.info)
         }, 5000, zoneTmpDir)
       }
@@ -445,7 +451,7 @@ export function batchOcrAndRetrieve(options: BatchOcrAndRetrieve): Observable<Oc
 }
 
 
-function setDefaultValue(info: OcrRetInfo, ocrFields: OcrFields, defaultValue: string = ''): OcrRetInfo {
+function setDefaultValue(info: OcrRetInfo, ocrFields: OcrFields, defaultValue = ''): OcrRetInfo {
   const ret: OcrRetInfo = new Map()
 
   for (const fld of Object.keys(ocrFields)) {
@@ -474,7 +480,7 @@ function processZoneImgRow(zoneRet: OcrZoneRet): OcrZoneRet {
 
     case FieldName.date:
       ret.value = value.trim().replace(/\D/g, '') // YYYYMMDD
-      if (ret.value && ret.value.slice(0, 1) === '0') {
+      if (ret.value && ret.value.startsWith('0')) {
         ret.value = '2' + ret.value
       }
       break
@@ -586,7 +592,9 @@ function getOcrFields(bankName: BankName, configMap: VoucherConfigMap): OcrField
 
 
 function saveImgAndPrune(options: SaveImgAndPruneOpts): Observable<OcrRetInfo> {
-  const { retInfo, resizeDir, debug, scale, jpegQuality } = options
+  const {
+    retInfo, resizeDir, debug, scale, jpegQuality,
+  } = options
   debug && console.info(
     `saveImgAndPrune():  ${new Date()}\n`,
     { options },
@@ -596,10 +604,10 @@ function saveImgAndPrune(options: SaveImgAndPruneOpts): Observable<OcrRetInfo> {
   const path = retInfo.get(OcrRetInfoKey.path)
   const sn = retInfo.get(FieldName.sn)
 
-  if (!filename) {
+  if (! filename) {
     throw new Error(`result info map invalid with empty path. info: ${retInfo}`)
   }
-  if (!path) {
+  if (! path) {
     throw new Error(`result info map invalid with empty path. info: ${retInfo}`)
   }
   // YYYYMMDD-A15295623630009-0.31486898522590034-pageSplitItemIndex.jpg
@@ -622,13 +630,15 @@ function saveImgAndPrune(options: SaveImgAndPruneOpts): Observable<OcrRetInfo> {
   retInfo.set(OcrRetInfoKey.filename, filename2)
 
   return resizeAndSaveImg(path, targetPath, scale, jpegQuality).pipe(
-    map(imgInfo => {
+    map((imgInfo) => {
       retInfo.set(OcrRetInfoKey.path, imgInfo.path)
       return retInfo
     }),
     tap(() => {
       if (debug) {
-        console.info('resizeAndSaveImg() succeeded with: ', new Date(), { path, targetPath, scale, jpegQuality })
+        console.info('resizeAndSaveImg() succeeded with: ', new Date(), {
+          path, targetPath, scale, jpegQuality,
+        })
       }
       else {
         unlinkAsync(path).catch(console.info)
@@ -659,18 +669,20 @@ function genFieldLangs(
 export function ocrAndPickFromZoneImg(
   zoneImgRow: ZoneImgRow,
   config: VoucherConfig,
-  debug: boolean = false,
+  debug = false,
 ): Observable<OcrZoneRet> {
 
-  const { ocrDefaultLangs, ocrFieldLangs, regexpOpts, ocrFields } = config
+  const {
+    ocrDefaultLangs, ocrFieldLangs, regexpOpts, ocrFields,
+  } = config
   const ocrRetTxtMap = <OcrRetTxtMap> new Map()
 
   return ofrom(Object.entries(ocrFields)).pipe(
-    filter(data => {
+    filter((data) => {
       const zoneName: FieldName | void = data[1]
       return !! zoneName && zoneName === zoneImgRow[0]
     }),
-    concatMap(data => {
+    concatMap((data) => {
       const fieldName = <FieldName> data[0]
       const zoneName = <FieldName> data[1]
       return ocrAndPickFieldFromZoneImg(
@@ -696,23 +708,23 @@ function ocrAndPickFieldFromZoneImg(
   regexpOpts: ZoneRegexpOpts,
   defaultLangs: OcrLangs,
   fieldLangs: Partial<OcrFieldLangs> | void,
-  debug: boolean = false,
+  debug = false,
   ocrRetTxtMap: OcrRetTxtMap,
 ): Observable<OcrZoneRet> {
 
   const [, zoneImg] = zoneImgRow
   const langs = genFieldLangs(fieldName, defaultLangs, fieldLangs)
   const maxLangIndex = langs.length - 1
-  const regexp: RegexpArray | void = getRegexpOptsByName(fieldName, regexpOpts)  // fieldKey, not fieldName !
+  const regexp: RegexpArray | void = getRegexpOptsByName(fieldName, regexpOpts) // fieldKey, not fieldName !
 
-  if (!regexp) {
+  if (! regexp) {
     throw new Error(`got regexp empty by zoneName: "${fieldName}"`)
   }
 
   // console.info(`lop langs:----field: ${fieldName}:`, langs)
   return ofrom(langs).pipe(
     // MUST concatMap
-    concatMap(lang => {
+    concatMap((lang) => {
       // console.info(`\n\n\nfld "${fieldName}" zoneName: "${zoneName}" use lang: ${lang}, path: "${zoneImg.path}"\n`)
       const path = getOcrRetLangPath(ocrRetTxtMap, zoneName, lang)
 
@@ -725,7 +737,7 @@ function ocrAndPickFieldFromZoneImg(
           prepareContent,
           debug,
         ).pipe(
-          map(val => {
+          map((val) => {
             return <OcrZoneRet> {
               fieldName,
               zoneName,
@@ -750,7 +762,7 @@ function ocrAndPickFieldFromZoneImg(
               prepareContent,
               debug,
             ).pipe(
-              map(val => {
+              map((val) => {
                 return <OcrZoneRet> {
                   fieldName,
                   zoneName,
@@ -773,12 +785,12 @@ function ocrAndPickFieldFromZoneImg(
 
     skipWhile((data: OcrZoneRet, index: number) => {
       const valid = validateZoneImgRow(data.fieldName, data.value)
-      return !valid && index !== maxLangIndex
+      return ! valid && index !== maxLangIndex
     }),
 
     take(1),
 
-    map(data => {
+    map((data) => {
       if (typeof data.value !== 'string') {
         data.value = ''
       }

@@ -1,5 +1,3 @@
-import { join, tmpdir } from '@waiting/shared-core'
-
 import {
   Actions,
   BVOEvent,
@@ -7,9 +5,12 @@ import {
   OcrZone,
 } from './model'
 
+import { join, tmpdir } from '@waiting/shared-core'
+
+
 
 export const initialBaseTmpDir = join(tmpdir(), 'voucher-ocr')
-export const initialResizeImgDir = join(initialBaseTmpDir, 'resize')   // store result images
+export const initialResizeImgDir = join(initialBaseTmpDir, 'resize') // store result images
 export const initialSplitTmpDir = join(initialBaseTmpDir, 'split') // store temp split images to ocr
 /** src dir for parsed image with margin */
 export const srcTmpDirPrefix = 'src'

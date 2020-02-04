@@ -1,6 +1,6 @@
-export type SendArgs = Array<string | number> | string | number
-export type PlainText = string  // 明文
-export type EncodedText = string  // base64格式签名数据
+export type SendArgs = (string | number)[] | string | number
+export type PlainText = string // 明文
+export type EncodedText = string // base64格式签名数据
 export type Filename = string
 
 export interface OcrOpts {
@@ -76,7 +76,7 @@ export const enum FieldName {
   date = 'date',
   destAccountNumber = 'destAccountNumber',
   paymentAccountNumber = 'paymentAccountNumber',
-  sn = 'sn',  // serial number
+  sn = 'sn', // serial number
 }
 export const enum OcrRetInfoKey {
   filename = 'filename',
@@ -88,7 +88,7 @@ export type VoucherConfigMap = Map<BankName, VoucherConfig>
 // for transport
 export type OcrRetObjectTypeKey = FieldNameTypeKey | keyof typeof OcrRetInfoKey
 export type OcrRetObject = {
-  [key in OcrRetObjectTypeKey]: string  // OcrRetInfoKey: string
+  [key in OcrRetObjectTypeKey]: string // OcrRetInfoKey: string
 }
 
 export interface OcrZoneRet {
@@ -100,7 +100,7 @@ export interface OcrZoneRet {
 }
 
 // regexp match item with order
-export type RegexpArray = ReadonlyArray<RegExp>
+export type RegexpArray = readonly RegExp[]
 
 export interface VoucherConfig {
   bankName: BankName
@@ -121,7 +121,7 @@ export interface VoucherConfig {
  * eg. ['eng', 'chi_sim'], first try eng, and retry chi_sim if failed with eng
  * value see: https://github.com/tesseract-ocr/tesseract/wiki/Data-Files
  */
-export type OcrLangs = ReadonlyArray<string>
+export type OcrLangs = readonly string[]
 
 export type FieldNameTypeKey = keyof typeof FieldName
 export type ZoneRegexpOpts = {
@@ -142,7 +142,7 @@ export interface OcrZone {
   offsetX: number
   offsetY: number
 }
-export type OcrZones = ReadonlyArray<OcrZone>
+export type OcrZones = readonly OcrZone[]
 
 /**
  * retrieve fields from mapped zones
@@ -154,18 +154,18 @@ export type OcrFields = {
 }
 
 
-export type ZoneImgRow = [FieldName , ImgFileInfo]
+export type ZoneImgRow = [FieldName, ImgFileInfo]
 export type ZoneImgMap = Map<FieldName, ImgFileInfo> // result of crop zones
 
 export interface ImgInfo {
   key: string
   path: string
-  durl: string  // DataUrl
+  durl: string // DataUrl
 }
 
 export interface ParsePageMarginOpts {
-  srcPath: string,
-  targetDir: string,
+  srcPath: string
+  targetDir: string
   pageMarginTop: number
   pageMarginLeft: number
   pageMarginRight: number
@@ -176,15 +176,15 @@ export interface ParsePageMarginOpts {
 export interface SplitPageOpts {
   index: number // split index for position
   itemConfig: VoucherConfig
-  srcPath: string   // source image
-  targetDir: string  // result image folder
+  srcPath: string // source image
+  targetDir: string // result image folder
   pageHeight: number
 }
 
 
 export interface ImgFileInfo {
-  name: Filename  // excluding the folder
-  path: string  // file path
+  name: Filename // excluding the folder
+  path: string // file path
   width: number
   height: number
   size: number

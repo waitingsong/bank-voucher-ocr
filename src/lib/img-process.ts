@@ -1,4 +1,8 @@
 import {
+  Filename, ImgFileInfo, ParsePageMarginOpts, SplitPageOpts, VoucherConfig, VoucherImgMap,
+} from './model'
+
+import {
   basename,
   copyFileAsync,
   join,
@@ -13,9 +17,6 @@ import {
   tap,
 } from 'rxjs/operators'
 
-import {
-  Filename, ImgFileInfo, ParsePageMarginOpts, SplitPageOpts, VoucherConfig, VoucherImgMap,
-} from './model'
 
 
 const moment = moment_
@@ -23,7 +24,7 @@ const moment = moment_
 
 export function parsePageMargin(
   options: ParsePageMarginOpts,
-  debug: boolean = false,
+  debug = false,
 ): Observable<ImgFileInfo> {
 
   debug && console.info(
@@ -67,7 +68,7 @@ export function parsePageMargin(
         path: info.path,
         width: info.width,
         height: info.height,
-        size: info.size,  // maybe float value and not accurate...
+        size: info.size, // maybe float value and not accurate...
       }
       return ret
     }),
@@ -80,7 +81,7 @@ export function splitPagetoItems(
   srcPath: string,
   targetDir: string,
   itemConfig: VoucherConfig | void,
-  debug: boolean = false,
+  debug = false,
 ): Observable<Map<Filename, ImgFileInfo>> {
 
   debug && console.info(
@@ -93,7 +94,7 @@ export function splitPagetoItems(
     map((info: IInfoResult) => {
       const fileMap = <VoucherImgMap> new Map()
 
-      if (!itemConfig) {
+      if (! itemConfig) {
         const longName = genSplitPagetoItemsName(basename(info.name), 0)
         const dst = join(targetDir, longName)
         const cp$ = defer(() => copyFileAsync(info.path, dst)).pipe(
@@ -109,7 +110,7 @@ export function splitPagetoItems(
             fileMap.set(imgFileInfo.name, imgFileInfo)
             return fileMap
           }),
-          tap(retMap => {
+          tap((retMap) => {
             debug && console.info(
               `splitPagetoItems(): result during !itemConfig ${new Date()}\n`,
               { srcPath, targetDir, fileMap: retMap },
@@ -127,7 +128,7 @@ export function splitPagetoItems(
       }
 
       return range(0, itemCount).pipe(
-        mergeMap(index => {
+        mergeMap((index) => {
           const splitPageOpts = {
             index, // split index for position
             itemConfig: { ...itemConfig },
@@ -141,7 +142,7 @@ export function splitPagetoItems(
           }
 
           return parseSplitPage(splitPageOpts).pipe(
-            mergeMap(fileInfo => {
+            mergeMap((fileInfo) => {
               const fileMap2 = <VoucherImgMap> new Map()
 
               if (fileInfo.name) {
@@ -163,8 +164,8 @@ export function splitPagetoItems(
 export function resizeAndSaveImg(
   srcPath: string,
   targetPath: string,
-  scale: number,  // 0-1
-  quality: number,  // jpegQuality 1-100
+  scale: number, // 0-1
+  quality: number, // jpegQuality 1-100
 ): Observable<ImgFileInfo> {
 
   if (scale <= 0 || scale > 1) {
@@ -172,7 +173,7 @@ export function resizeAndSaveImg(
   }
 
   return readImgInfo(srcPath).pipe(
-    mergeMap(info => {
+    mergeMap((info) => {
       const opts = {
         src: srcPath,
         dst: targetPath,
@@ -182,13 +183,13 @@ export function resizeAndSaveImg(
       }
       return defer(() => resize(opts))
     }),
-    map(info => {
+    map((info) => {
       const ret: ImgFileInfo = {
         name: info.name,
         path: info.path,
         width: info.width,
         height: info.height,
-        size: info.size,  // maybe float value and not accurate...
+        size: info.size, // maybe float value and not accurate...
       }
       return ret
     }),
@@ -242,7 +243,7 @@ function parseSplitPage(options: SplitPageOpts): Observable<ImgFileInfo> {
         path: info.path,
         width: info.width,
         height: info.height,
-        size: info.size,  // maybe float value and not accurate...
+        size: info.size, // maybe float value and not accurate...
       }
       return of(ret)
     }),
@@ -271,7 +272,7 @@ export function readImgInfo(path: string): Observable<IInfoResult> {
 
 // calculate item numbers of one scan page
 function calcItemsPerPage(pageHeight: number, itemHeight: number): number {
-  const delta = 33  // pixel ca 3mm during 300dpi
+  const delta = 33 // pixel ca 3mm during 300dpi
 
   return pageHeight >= itemHeight
     ? Math.ceil((pageHeight + delta) / itemHeight)
