@@ -96,7 +96,7 @@ export function prepareContent(buf: Buffer): string {
   if (! content) {
     return ''
   }
-  content = content.replace(/(?<=\S) /g, '') // remove ONE space character after word
+  content = content.replace(/(?<=\S) /ug, '') // remove ONE space character after word
   return content
 }
 

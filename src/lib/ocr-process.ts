@@ -1,3 +1,4 @@
+/* eslint-disable id-length */
 import {
   BankName, FieldName, ImgFileInfo, OcrFields, OcrZone,
   VoucherConfig, VoucherConfigMap, ZoneImgMap,
@@ -26,7 +27,7 @@ export function cropImgAllZones(
   ocrZoneOptsArr: readonly OcrZone[],
 ): Observable<ZoneImgMap> {
 
-  const flds = <OcrZone[]> []
+  const flds: OcrZone[] = []
   const srcFldSet = new Set()
 
   for (const srcFld of Object.values(ocrFields)) {
@@ -47,14 +48,14 @@ export function cropImgAllZones(
     mergeMap((ocrZoneOpts) => {
       return cropImgZone(srcPath, zoneTmpDir, ocrZoneOpts).pipe(
         map((img) => {
-          return <[FieldName, ImgFileInfo]> [ocrZoneOpts.zoneName, img]
+          return [ocrZoneOpts.zoneName, img] as [FieldName, ImgFileInfo]
         }),
       )
     }),
     reduce((acc: ZoneImgMap, curr: [FieldName, ImgFileInfo]) => {
       acc.set(curr[0], curr[1])
       return acc
-    }, <ZoneImgMap> new Map()),
+    }, new Map() as ZoneImgMap),
   )
 
 }
@@ -94,11 +95,8 @@ export function cropImgZone(srcPath: string, targetDir: string, ocrZoneOpts: Ocr
 
 // ocr a iamge file, txtPath without extension
 export function runOcr(imgPath: string, lang: string, txtPath: string): Observable<void> {
-  // second path will be append with '.txt' by tesseract
-  if (! lang) {
-    lang = 'eng'
-  }
-  const cmd = `tesseract "${imgPath}" "${txtPath}" -l ${lang}`
+  // lang: second path will be append with '.txt' by tesseract
+  const cmd = `tesseract "${imgPath}" "${txtPath}" -l ${lang ? lang : 'eng'}`
   // const opts = {
   //   cwd: 'd:/Program/Tesseract-OCR/tessdata',
   // }

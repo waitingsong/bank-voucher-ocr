@@ -1,3 +1,4 @@
+/* eslint-disable id-length */
 import {
   Filename, ImgFileInfo, ParsePageMarginOpts, SplitPageOpts, VoucherConfig, VoucherImgMap,
 } from './model'
@@ -92,7 +93,7 @@ export function splitPagetoItems(
   const info$: Observable<IInfoResult> = readImgInfo(srcPath)
   const ret$ = info$.pipe(
     map((info: IInfoResult) => {
-      const fileMap = <VoucherImgMap> new Map()
+      const fileMap: VoucherImgMap = new Map()
 
       if (! itemConfig) {
         const longName = genSplitPagetoItemsName(basename(info.name), 0)
@@ -143,7 +144,7 @@ export function splitPagetoItems(
 
           return parseSplitPage(splitPageOpts).pipe(
             mergeMap((fileInfo) => {
-              const fileMap2 = <VoucherImgMap> new Map()
+              const fileMap2: VoucherImgMap = new Map()
 
               if (fileInfo.name) {
                 fileMap2.set(fileInfo.name, fileInfo)
@@ -222,7 +223,7 @@ function parseSplitPage(options: SplitPageOpts): Observable<ImgFileInfo> {
     return of(ret)
   }
   const filename = basename(srcPath)
-  const name = filename.split('.')[0]
+  const [name] = filename.split('.')
   const longName = genSplitPagetoItemsName(name, index)
   const dst = join(options.targetDir, longName)
   const opts = {
@@ -259,7 +260,7 @@ function parseSplitPage(options: SplitPageOpts): Observable<ImgFileInfo> {
  */
 function genSplitPagetoItemsName(baseName: string, index: number): Filename {
   if (index < 0) {
-    throw new Error('Value of param index of genSplitPagetoItemsName(name, index) invalid: ' + index)
+    throw new Error('Value of param index of genSplitPagetoItemsName(name, index) invalid: ' + index.toString())
   }
   const curDate = moment().format('YYYYMMDD')
   const ret = `${curDate}-${baseName}-${Math.random()}-${index}.jpg`

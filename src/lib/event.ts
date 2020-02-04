@@ -12,9 +12,6 @@ import { throttleTime } from 'rxjs/operators'
 
 
 export function watchFileChange(path: string, period = 3000): Observable<BVOEvent> {
-  if (period <= 0) {
-    period = 3000
-  }
   console.info(`watch file: ${path}...`)
   if (! isFileExists(path)) {
     throw new Error(`watch file not exists: "${path}"`)
@@ -32,6 +29,6 @@ export function watchFileChange(path: string, period = 3000): Observable<BVOEven
   })
 
   return file$.pipe(
-    throttleTime(period),
+    throttleTime(period > 0 ? period : 3000),
   )
 }
