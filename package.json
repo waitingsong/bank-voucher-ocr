@@ -1,30 +1,37 @@
 {
-  "name": "npm-base",
+  "name": "bank-voucher-ocr",
   "author": "waiting",
-  "version": "0.0.1",
-  "description": "npm boilerplate",
+  "version": "2.5.0",
+  "description": "Bank Voucher ocr by tesseract and retrieve fields",
   "keywords": [
-    "种子项目",
-    "typescript",
-    "ts"
+    "voucher",
+    "rxjs",
+    "ocr",
+    "tesseract",
+    "银行凭证",
+    "银行回单"
   ],
   "bin": {},
   "browser": "",
-  "es2015": "",
+  "es2015": "./dist/bvocr.esm.js",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bugs": {
-    "url": "https://github.com/waitingsong/npm-base/issues"
+    "url": "https://github.com/waitingsong/bank-voucher-ocr/issues"
   },
-  "homepage": "https://github.com/waitingsong/npm-base#readme",
+  "homepage": "https://github.com/waitingsong/bank-voucher-ocr#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/waitingsong/npm-base.git"
+    "url": "git+https://github.com/waitingsong/bank-voucher-ocr.git"
   },
   "license": "MIT",
   "dependencies": {
-    "rxjs": "^6.5.2"
+    "@waiting/shared-core": "3",
+    "easyimage": "^3.1.0",
+    "moment": "^2.22.2",
+    "rxjs": "^6.5.2",
+    "rxrunscript": "^5.2.0"
   },
   "devDependencies": {
     "@types/mocha": "5",
