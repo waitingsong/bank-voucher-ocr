@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/waitingsong/bank-voucher-ocr/compare/v2.5.0...v3.0.0) (2020-02-05)
+
+
+### Features
+
+* parsePageMargin() before recognize ([1061c33](https://github.com/waitingsong/bank-voucher-ocr/commit/1061c331cdd8ece0116ad8d0f75903725db576a6))
+
 ## [2.5.0](https://github.com/waitingsong/bank-voucher-ocr/compare/v2.4.0...v2.5.0) (2019-12-24)
 
 
