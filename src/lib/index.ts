@@ -66,19 +66,6 @@ export class Bvo {
 
     this.options.debug = !! this.options.debug
 
-    this.options.pageMarginTop = this.options.pageMarginTop && this.options.pageMarginTop >= 0
-      ? +this.options.pageMarginTop
-      : 0
-    this.options.pageMarginLeft = this.options.pageMarginLeft && this.options.pageMarginLeft >= 0
-      ? +this.options.pageMarginLeft
-      : 0
-    this.options.pageMarginRight = this.options.pageMarginRight && this.options.pageMarginRight >= 0
-      ? +this.options.pageMarginRight
-      : 0
-    this.options.pageMarginBottom = this.options.pageMarginBottom && this.options.pageMarginBottom >= 0
-      ? +this.options.pageMarginBottom
-      : 0
-
     const { baseTmpDir, splitTmpDir, resizeImgDir } = options
 
     const baseDir = baseTmpDir ? baseTmpDir : initialBaseTmpDir
@@ -107,16 +94,11 @@ export class Bvo {
 
   public run(imgPath: string): Observable<OcrRetInfo> {
     const {
-      baseTmpDir,
       debug,
       jpegQuality,
       scale,
       resizeImgDir,
       globalScale,
-      pageMarginTop,
-      pageMarginLeft,
-      pageMarginRight,
-      pageMarginBottom,
     } = this.options
 
     const resizeDir = resizeImgDir ? resizeImgDir : initialResizeImgDir
@@ -130,32 +112,15 @@ export class Bvo {
 
     !! debug && console.info(`\nrun() imgPath: "${imgPath}" ` + new Date().getTime().toString())
 
-    const baseDir = baseTmpDir ? baseTmpDir : initialBaseTmpDir
-    const srcTmpDir = join(baseDir, srcTmpDirPrefix)
-    const marginOpts: ParsePageMarginOpts = {
-      srcPath: imgPath,
-      targetDir: srcTmpDir,
-      pageMarginTop: pageMarginTop > 0 ? pageMarginTop : 0,
-      pageMarginLeft: pageMarginLeft > 0 ? pageMarginLeft : 0,
-      pageMarginRight: pageMarginRight > 0 ? pageMarginRight : 0,
-      pageMarginBottom: pageMarginBottom > 0 ? pageMarginBottom : 0,
-    }
-
-    const src$ = parsePageMargin(marginOpts, debug)
-    const ret$ = src$.pipe(
-      mergeMap((info: ImgFileInfo) => {
-        return recognize(info.path, this.options).pipe(
-          mergeMap((retInfo: OcrRetInfo) => {
-            const opts: SaveImgAndPruneOpts = {
-              retInfo,
-              ...options,
-            }
-            return saveImgAndPrune(opts)
-          }),
-        )
+    const ret$ = recognize(imgPath, this.options).pipe(
+      mergeMap((retInfo: OcrRetInfo) => {
+        const opts: SaveImgAndPruneOpts = {
+          retInfo,
+          ...options,
+        }
+        return saveImgAndPrune(opts)
       }),
     )
-
     return ret$
   }
 
@@ -163,6 +128,7 @@ export class Bvo {
 
 
 /** 处理单个文件图片 */
+// eslint-disable-next-line max-lines-per-function
 export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetInfo> {
   const {
     bankName: inputBankName,
@@ -207,6 +173,37 @@ export function recognize(imgPath: string, options: OcrOpts): Observable<OcrRetI
 
   const ret$ = bank$.pipe(
     filter(({ bankName }) => !! bankName && bankName !== BankName.NA),
+    mergeMap(({ bankName, pagePath }) => { // 处理margin
+      const srcTmpDir = join(baseDir, srcTmpDirPrefix)
+      const bankConfig = getOcrZoneOptsByBankName(bankName, voucherConfigMap)
+      if (! bankConfig) {
+        throw new Error(`get bankConfig empty with bankName: "${bankName}"`)
+      }
+      const {
+        pageMarginTop,
+        pageMarginLeft,
+        pageMarginRight,
+        pageMarginBottom,
+      } = bankConfig
+      const marginOpts: ParsePageMarginOpts = {
+        srcPath: pagePath,
+        targetDir: srcTmpDir,
+        pageMarginTop: pageMarginTop > 0 ? pageMarginTop : 0,
+        pageMarginLeft: pageMarginLeft > 0 ? pageMarginLeft : 0,
+        pageMarginRight: pageMarginRight > 0 ? pageMarginRight : 0,
+        pageMarginBottom: pageMarginBottom > 0 ? pageMarginBottom : 0,
+      }
+      console.info({ bankName })
+      const srcImg$ = parsePageMargin(marginOpts, debug)
+      return srcImg$.pipe(
+        map((info: ImgFileInfo) => {
+          return {
+            bankName,
+            pagePath: info.path,
+          }
+        }),
+      )
+    }),
     mergeMap(({ bankName, pagePath }) => { // 切分页面为多张凭证
       if (isSingleVoucher) {
         const info$ = readImgInfo(pagePath).pipe(
@@ -273,9 +270,11 @@ export function recognizePageBank(options: RecognizePageBankOpts): Observable<Pa
   } = options
 
   const zoneTmpDir = join(baseDir, zoneTmpDirPrefix, `${basename(path)}-${Math.random().toString()}`)
-  debug && console.info('recognize pageBank:', zoneTmpDir, path)
 
   return defer(() => createDirAsync(zoneTmpDir)).pipe(
+    tap(() => {
+      debug && console.info('recognize pageBank:', zoneTmpDir, path)
+    }),
     catchError((err) => {
       console.info(err)
       return of(null)
@@ -284,7 +283,7 @@ export function recognizePageBank(options: RecognizePageBankOpts): Observable<Pa
     concatMap((zoneInfo) => { // ocr识别银行名称区域
       return runOcr(zoneInfo.path, lang, zoneInfo.path).pipe(
         mapTo(zoneInfo.path),
-        // tap(() => console.info('ocr completed')),
+        tap(() => console.info('pagebank zoneInfo file generated: \n', zoneInfo, '\n')),
       )
     }),
     concatMap((zoneImgPath) => {
@@ -318,6 +317,9 @@ export function recognizePageBank(options: RecognizePageBankOpts): Observable<Pa
           bankName: BankName.NA,
           pagePath: '',
         } as PageBankRet),
+        tap((info) => {
+          debug && console.info('pick bank info:', info)
+        }),
       )
 
       return values$
@@ -330,6 +332,7 @@ export function recognizePageBank(options: RecognizePageBankOpts): Observable<Pa
         await cpSkipImg(path, skipImgDir)
       }
       debug || rimraf(zoneTmpDir).catch(console.info)
+      debug && console.info('recognize pageBank complete:', { bankName, pagePath }, '\n\n')
     }),
   )
 

@@ -32,10 +32,6 @@ export interface OcrOpts {
   /** Store temp split images to ocr */
   splitTmpDir?: string
   voucherConfigMap: VoucherConfigMap
-  pageMarginTop: number
-  pageMarginLeft: number
-  pageMarginRight: number
-  pageMarginBottom: number
 }
 
 export const enum Actions {
@@ -114,6 +110,10 @@ export interface VoucherConfig {
   ocrFieldLangs?: Partial<OcrFieldLangs>
   ocrZones: OcrZones
   regexpOpts: ZoneRegexpOpts
+  pageMarginTop: number
+  pageMarginLeft: number
+  pageMarginRight: number
+  pageMarginBottom: number
 }
 
 
