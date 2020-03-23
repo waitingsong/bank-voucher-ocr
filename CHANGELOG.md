@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.2.0](https://github.com/waitingsong/bank-voucher-ocr/compare/v3.1.0...v3.2.0) (2020-03-23)
+
+
+### Features
+
+* export getOcrZoneOptsByBankName() ([6d7fc77](https://github.com/waitingsong/bank-voucher-ocr/commit/6d7fc77bf1e7800111047be8f1bb75d2c4fc621c))
+
 ## [3.1.0](https://github.com/waitingsong/bank-voucher-ocr/compare/v3.0.0...v3.1.0) (2020-03-23)
 
 
