@@ -9,4 +9,5 @@ export {
 } from './lib/config'
 
 export { parsePageMargin } from './lib/img-process'
+export { getOcrZoneOptsByBankName } from './lib/ocr-process'
 
