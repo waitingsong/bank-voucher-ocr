@@ -7,3 +7,6 @@ export {
   initialSplitTmpDir,
   zoneTmpDirPrefix,
 } from './lib/config'
+
+export { parsePageMargin } from './lib/img-process'
+
