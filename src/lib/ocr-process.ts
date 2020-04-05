@@ -1,8 +1,4 @@
 /* eslint-disable id-length */
-import {
-  BankName, FieldName, ImgFileInfo, OcrFields, OcrZone,
-  VoucherConfig, VoucherConfigMap, ZoneImgMap,
-} from './model'
 
 import { join } from '@waiting/shared-core'
 import { crop, IInfoResult } from 'easyimage'
@@ -11,6 +7,11 @@ import {
   catchError, last, map, mapTo, mergeMap, reduce,
 } from 'rxjs/operators'
 import { run } from 'rxrunscript'
+
+import {
+  BankName, FieldName, ImgFileInfo, OcrFields, OcrZone,
+  VoucherConfig, VoucherConfigMap, ZoneImgMap,
+} from './model'
 
 
 

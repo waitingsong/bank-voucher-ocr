@@ -1,3 +1,5 @@
+import { join, tmpdir } from '@waiting/shared-core'
+
 import {
   Actions,
   BVOEvent,
@@ -5,7 +7,6 @@ import {
   OcrZone,
 } from './model'
 
-import { join, tmpdir } from '@waiting/shared-core'
 
 
 

@@ -1,13 +1,14 @@
 import { watch } from 'fs'
 
-import {
-  Actions,
-  BVOEvent,
-} from './model'
 
 import { isFileExists } from '@waiting/shared-core'
 import { Observable, Observer } from 'rxjs'
 import { throttleTime } from 'rxjs/operators'
+
+import {
+  Actions,
+  BVOEvent,
+} from './model'
 
 
 

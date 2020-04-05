@@ -1,7 +1,4 @@
 /* eslint-disable id-length */
-import {
-  Filename, ImgFileInfo, ParsePageMarginOpts, SplitPageOpts, VoucherConfig, VoucherImgMap,
-} from './model'
 
 import {
   basename,
@@ -17,6 +14,10 @@ import {
   mergeMap,
   tap,
 } from 'rxjs/operators'
+
+import {
+  Filename, ImgFileInfo, ParsePageMarginOpts, SplitPageOpts, VoucherConfig, VoucherImgMap,
+} from './model'
 
 
 

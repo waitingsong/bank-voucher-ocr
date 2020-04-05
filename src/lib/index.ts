@@ -2,6 +2,32 @@ import { cpus } from 'os'
 
 
 import {
+  basename,
+  copyFileAsync,
+  createDirAsync,
+  isFileExists,
+  isPathAccessible,
+  join,
+  rimraf,
+  unlinkAsync,
+} from '@waiting/shared-core'
+import * as moment_ from 'moment'
+import { defer, from as ofrom, of, Observable } from 'rxjs'
+import {
+  catchError,
+  concatMap,
+  defaultIfEmpty,
+  filter,
+  map,
+  mapTo,
+  mergeMap,
+  reduce,
+  skipWhile,
+  take,
+  tap,
+} from 'rxjs/operators'
+
+import {
   initialBaseTmpDir,
   initialResizeImgDir,
   initialSplitTmpDir,
@@ -26,31 +52,6 @@ import {
   updateOcrRetTxtMap,
 } from './txt-process'
 
-import {
-  catchError,
-  concatMap,
-  defaultIfEmpty,
-  filter,
-  map,
-  mapTo,
-  mergeMap,
-  reduce,
-  skipWhile,
-  take,
-  tap,
-} from 'rxjs/operators'
-import { defer, from as ofrom, of, Observable } from 'rxjs'
-import * as moment_ from 'moment'
-import {
-  basename,
-  copyFileAsync,
-  createDirAsync,
-  isFileExists,
-  isPathAccessible,
-  join,
-  rimraf,
-  unlinkAsync,
-} from '@waiting/shared-core'
 
 
 const moment = moment_

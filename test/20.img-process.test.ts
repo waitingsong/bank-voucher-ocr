@@ -1,10 +1,11 @@
 import { basename, normalize } from 'path'
 
 
+import * as assert from 'power-assert'
+
 import { parsePageMargin } from '../src/lib/img-process'
 import { ParsePageMarginOpts } from '../src/lib/model'
 
-import * as assert from 'power-assert'
 
 
 const filename = basename(__filename)
